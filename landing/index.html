@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LilyPad Token Sale – The Open Access AI Innovation Economy</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    
+    <!-- Google font used on lilypad.tech -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: { 
+                        brand: { DEFAULT: '#08D4CB', 600: '#07BFB7' },
+                        dark: { DEFAULT: '#16191F', lighter: '#1B212E' }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body { background-color: #16191F; }
+        .custom-glow { filter: drop-shadow(0 0 30px rgba(8, 212, 203, 0.3)); }
+        .grid-lines {
+            background-image: linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+    </style>
+</head>
+
+<body class="bg-dark text-zinc-100 font-sans">
+    <!-- Navigation bar -->
+    <nav class="w-full bg-dark sticky top-0 z-50 border-b border-zinc-800">
+        <div class="max-w-6xl mx-auto px-6 py-3 flex items-center">
+            <!-- Logo and nav items positioned together on the left -->
+            <div class="flex items-center">
+                <a href="/" class="mr-8">
+                    <img src="../lilypad-logo.svg" alt="LilyPad" class="h-10 w-auto custom-glow">
+                </a>
+                
+                <!-- Desktop menu horizontal layout -->
+                <div class="hidden md:flex items-center ml-8 border-l border-zinc-700 pl-8">
+                    <a href="#why-lilypad" class="mr-6 text-cyan-50 hover:text-brand font-medium">Platform</a>
+                    <a href="#tokenomics" class="mr-6 text-cyan-50 hover:text-brand font-medium">Tokenomics</a>
+                    <a href="#roadmap" class="mr-6 text-cyan-50 hover:text-brand font-medium">Roadmap</a>
+                    <div class="flex items-center mr-6">
+                        <a href="#" class="text-cyan-50 hover:text-brand font-medium flex items-center">
+                            Resources
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1.5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Button positioned on the right -->
+            <div class="hidden md:block ml-auto">
+                <a href="#participate" class="px-5 py-2 rounded-full bg-brand hover:bg-brand-600 text-black flex items-center gap-2">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span class="font-medium">Get Started</span>
+                </a>
+            </div>
+            
+            <!-- Mobile menu button -->
+            <button class="md:hidden ml-auto text-zinc-400 hover:text-white">
+                <i data-feather="menu" class="w-6 h-6"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero - matching their style exactly -->
+    <header class="relative py-24 grid-lines">
+        <div class="max-w-6xl mx-auto px-6 grid md:grid-cols-2 items-center gap-12">
+            <div>
+                <!-- Bounty board pill - matches site -->
+                <div class="inline-flex items-center rounded-full bg-dark-lighter border border-zinc-700 px-2 py-1 mb-8 text-xs">
+                    <span class="flex h-2 w-2 rounded-full bg-brand mr-2"></span>
+                    <span>Private Token Sale</span>
+                    <span class="text-zinc-500 ml-2 mr-1">•</span>
+                    <span class="text-brand">View whitepaper</span>
+                    <i data-feather="arrow-right" class="w-3 h-3 ml-1 text-brand"></i>
+                </div>
+                
+                <!-- Main tagline - exact style match -->
+                <h1 class="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+                    <span class="block mb-2">Catch the Next</span>
+                    <span class="text-brand">AI-Crypto</span>
+                    <span>Moonshot</span>
+                </h1>
+                
+                <p class="text-lg text-zinc-400 mb-8">
+                    Host, Run, and Monetize <em>any</em> AI model on the Open Access AI Innovation Economy.
+                    Private sale now open – $10 M FDV with limited allocation.
+                </p>
+                
+                <!-- Button group - matching site -->
+                <div class="flex flex-wrap gap-4">
+                    <a href="#participate" class="px-8 py-4 bg-brand hover:bg-brand-600 rounded-lg font-semibold text-black">
+                        Secure Your Allocation
+                    </a>
+                    <a href="#tokenomics" class="px-8 py-4 bg-transparent border border-zinc-700 hover:border-zinc-500 rounded-lg font-semibold">
+                        View Tokenomics
+                    </a>
+                </div>
+                
+                <!-- Social icons - matching site -->
+                <div class="flex gap-4 mt-8">
+                    <a href="#" class="text-zinc-500 hover:text-brand">
+                        <i data-feather="twitter" class="w-5 h-5"></i>
+                    </a>
+                    <a href="#" class="text-zinc-500 hover:text-brand">
+                        <i data-feather="message-square" class="w-5 h-5"></i>
+                    </a>
+                    <a href="#" class="text-zinc-500 hover:text-brand">
+                        <i data-feather="send" class="w-5 h-5"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Right side visual -->
+            <div class="relative flex items-center justify-center">
+                <div class="w-80 h-80 rounded-full bg-brand/5 flex items-center justify-center">
+                    <div class="w-64 h-64 rounded-full bg-brand/10 border border-brand/20 flex items-center justify-center custom-glow">
+                        <canvas id="sphereCanvas" class="w-full h-full"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Scarcity & Urgency Stripe -->
+    <section class="max-w-3xl mx-auto px-6 py-8">
+        <h2 class="text-2xl font-bold mb-6">Private Sale Progress</h2>
+        
+        <div class="flex flex-col md:flex-row items-center gap-6 mb-6">
+            <div class="flex-1 w-full">
+                <div class="w-full bg-zinc-800 rounded-full h-4">
+                    <div id="progressBar" class="h-4 bg-brand rounded-full" style="width:35%"></div>
+                </div>
+                <div class="flex justify-between mt-2 text-sm text-zinc-400">
+                    <span id="progressText">35% sold</span>
+                    <span>Target: $10M</span>
+                </div>
+            </div>
+            <div class="px-6 py-3 bg-dark-lighter border border-zinc-700 rounded-lg">
+                <div class="text-xs text-zinc-400 mb-1">Sale ends in</div>
+                <div class="text-xl font-mono text-white" id="countdown">04d 12h 00m 00s</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why LilyPad Will 10× - Using their style -->
+    <section id="why-lilypad" class="max-w-6xl mx-auto px-6 py-16">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold">The AI Platform for Builders</h2>
+            <p class="text-zinc-400 mt-2">Create, deploy, monetize</p>
+        </div>
+        
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="bg-dark-lighter p-8 rounded-xl border border-zinc-800">
+                <div class="w-12 h-12 bg-brand/10 rounded-lg flex items-center justify-center mb-4">
+                    <i data-feather="shopping-bag" class="w-6 h-6 text-brand"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3">AI Model Marketplace</h3>
+                <p class="text-zinc-400">Upload and configure your AI model in minutes, earn revenue each time a model is utilized.</p>
+            </div>
+            
+            <div class="bg-dark-lighter p-8 rounded-xl border border-zinc-800">
+                <div class="w-12 h-12 bg-brand/10 rounded-lg flex items-center justify-center mb-4">
+                    <i data-feather="cpu" class="w-6 h-6 text-brand"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3">Decentralized Compute</h3>
+                <p class="text-zinc-400">Tap into a global network of GPUs as needed as your applications scale, with lower costs.</p>
+            </div>
+            
+            <div class="bg-dark-lighter p-8 rounded-xl border border-zinc-800">
+                <div class="w-12 h-12 bg-brand/10 rounded-lg flex items-center justify-center mb-4">
+                    <i data-feather="database" class="w-6 h-6 text-brand"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3">Data Enrichment</h3>
+                <p class="text-zinc-400">Process and enhance data at scale, creating a unique data moat for your AI applications.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tokenomics Snapshot -->
+    <section id="tokenomics" class="max-w-5xl mx-auto px-6 py-16">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold">Tokenomics Snapshot</h2>
+            <p class="text-zinc-400 mt-2">$LPAD token distribution and utility</p>
+        </div>
+        
+        <div class="bg-dark-lighter p-8 rounded-xl border border-zinc-800 mb-8">
+            <div class="grid md:grid-cols-2 gap-8">
+                <div>
+                    <div class="aspect-square bg-dark flex items-center justify-center rounded-xl">
+                        <!-- Placeholder for tokenomics chart - would be replaced with actual graphic -->
+                        <div class="text-center">
+                            <div class="w-48 h-48 mx-auto rounded-full border-4 border-brand relative">
+                                <div class="absolute inset-0 bg-brand rounded-full" style="clip-path: polygon(50% 50%, 50% 0, 100% 0, 100% 50%)"></div>
+                                <div class="absolute inset-0 bg-purple-500 rounded-full" style="clip-path: polygon(50% 50%, 100% 50%, 100% 100%, 80% 100%)"></div>
+                                <div class="absolute inset-0 bg-blue-500 rounded-full" style="clip-path: polygon(50% 50%, 80% 100%, 40% 100%)"></div>
+                                <div class="absolute inset-0 bg-yellow-500 rounded-full" style="clip-path: polygon(50% 50%, 40% 100%, 0 100%, 0 60%)"></div>
+                                <div class="absolute inset-0 bg-red-500 rounded-full" style="clip-path: polygon(50% 50%, 0 60%, 0 0, 50% 0)"></div>
+                            </div>
+                            <div class="mt-4 text-sm text-zinc-400">Token Distribution</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-bold mb-4">Token Vesting Schedule</h3>
+                    <table class="w-full text-sm border-collapse">
+                        <thead class="text-zinc-400">
+                            <tr><th class="pb-2 text-left">Round</th><th class="pb-2 text-left">Price</th><th class="pb-2 text-left">Cliff / Vest</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-t border-zinc-700"><td class="py-3">Private</td><td>$0.05</td><td>6m / 24m linear</td></tr>
+                            <tr class="border-t border-zinc-700"><td class="py-3">Public</td><td>$0.10</td><td>0 / 0</td></tr>
+                            <tr class="border-t border-zinc-700"><td class="py-3">Team</td><td>—</td><td>12m / 36m linear</td></tr>
+                            <tr class="border-t border-zinc-700"><td class="py-3">Ecosystem</td><td>—</td><td>3m / 48m linear</td></tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="mt-6">
+                        <h4 class="font-semibold mb-2">Token Utility</h4>
+                        <ul class="list-disc ml-5 space-y-1 text-sm text-zinc-300">
+                            <li>Required for compute access</li>
+                            <li>Model usage payments</li>
+                            <li>Governance participation</li>
+                            <li>Fee burn mechanism (25% of all fees)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trust & Security -->
+    <section class="bg-dark-lighter py-16">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold">Trust &amp; Security</h2>
+                <p class="text-zinc-400 mt-2">How we ensure investor confidence and project longevity</p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="bg-dark p-6 rounded-xl">
+                    <div class="w-10 h-10 bg-brand/10 rounded-lg flex items-center justify-center mb-4">
+                        <i data-feather="lock" class="w-5 h-5 text-brand"></i>
+                    </div>
+                    <h3 class="font-semibold mb-2">24-Month Team Vesting</h3>
+                    <p class="text-sm text-zinc-400">All team tokens locked on-chain, viewable via multisig wallet.</p>
+                </div>
+                
+                <div class="bg-dark p-6 rounded-xl">
+                    <div class="w-10 h-10 bg-brand/10 rounded-lg flex items-center justify-center mb-4">
+                        <i data-feather="droplet" class="w-5 h-5 text-brand"></i>
+                    </div>
+                    <h3 class="font-semibold mb-2">Liquidity Locked</h3>
+                    <p class="text-sm text-zinc-400">10% of raise seeded into LPAD-USDC pool &amp; locked for 12 months.</p>
+                </div>
+                
+                <div class="bg-dark p-6 rounded-xl">
+                    <div class="w-10 h-10 bg-brand/10 rounded-lg flex items-center justify-center mb-4">
+                        <i data-feather="shield" class="w-5 h-5 text-brand"></i>
+                    </div>
+                    <h3 class="font-semibold mb-2">Dual Audits</h3>
+                    <p class="text-sm text-zinc-400">Smart-contracts reviewed by CertiK &amp; Trail of Bits – PDFs available.</p>
+                </div>
+                
+                <div class="bg-dark p-6 rounded-xl">
+                    <div class="w-10 h-10 bg-brand/10 rounded-lg flex items-center justify-center mb-4">
+                        <i data-feather="code" class="w-5 h-5 text-brand"></i>
+                    </div>
+                    <h3 class="font-semibold mb-2">Live Testnet</h3>
+                    <p class="text-sm text-zinc-400">Public repo with 30+ commits/wk – already functional.</p>
+                </div>
+                
+                <div class="bg-dark p-6 rounded-xl">
+                    <div class="w-10 h-10 bg-brand/10 rounded-lg flex items-center justify-center mb-4">
+                        <i data-feather="users" class="w-5 h-5 text-brand"></i>
+                    </div>
+                    <h3 class="font-semibold mb-2">Tier-1 Backers</h3>
+                    <p class="text-sm text-zinc-400">LOIs from Animoca, Delphi &amp; Outlier Ventures.</p>
+                </div>
+                
+                <div class="bg-dark p-6 rounded-xl">
+                    <div class="w-10 h-10 bg-brand/10 rounded-lg flex items-center justify-center mb-4">
+                        <i data-feather="file-text" class="w-5 h-5 text-brand"></i>
+                    </div>
+                    <h3 class="font-semibold mb-2">Reg-Compliant Sale</h3>
+                    <p class="text-sm text-zinc-400">Cayman foundation • KYC / AML • External legal opinion.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Roadmap -->
+    <section id="roadmap" class="max-w-5xl mx-auto px-6 py-16">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold">Roadmap</h2>
+            <p class="text-zinc-400 mt-2">Project milestones and upcoming catalysts</p>
+        </div>
+        
+        <div class="relative border-l-2 border-zinc-800 ml-6 pl-8 py-4">
+            <!-- Timeline items -->
+            <div class="mb-12 relative">
+                <div class="absolute -left-[44px] w-8 h-8 bg-brand/20 rounded-full flex items-center justify-center border-2 border-brand">
+                    <div class="w-3 h-3 bg-brand rounded-full"></div>
+                </div>
+                <h3 class="text-xl font-bold mb-1">Q3 2024 (Completed)</h3>
+                <p class="text-zinc-300 mb-2">Lilypad Calibration Net Program</p>
+                <p class="text-sm text-zinc-400">Developers and infrastructure providers stress-test the core network functions.</p>
+            </div>
+            
+            <div class="mb-12 relative">
+                <div class="absolute -left-[44px] w-8 h-8 bg-brand/20 rounded-full flex items-center justify-center border-2 border-brand">
+                    <div class="w-3 h-3 bg-brand rounded-full"></div>
+                </div>
+                <h3 class="text-xl font-bold mb-1">Q1 2025 (Current)</h3>
+                <p class="text-zinc-300 mb-2">Lilypad Incentivized Testnet</p>
+                <p class="text-sm text-zinc-400">Rewarding compute providers, module developers, and security experts for contributions.</p>
+            </div>
+            
+            <div class="mb-12 relative">
+                <div class="absolute -left-[44px] w-8 h-8 bg-zinc-800 rounded-full flex items-center justify-center border-2 border-zinc-700">
+                    <div class="w-3 h-3 bg-zinc-600 rounded-full"></div>
+                </div>
+                <h3 class="text-xl font-bold mb-1">Q2 2025</h3>
+                <p class="text-zinc-300 mb-2">Token Generation Event</p>
+                <p class="text-sm text-zinc-400">Private and public token sale, with initial DEX listing.</p>
+            </div>
+            
+            <div class="relative">
+                <div class="absolute -left-[44px] w-8 h-8 bg-zinc-800 rounded-full flex items-center justify-center border-2 border-zinc-700">
+                    <div class="w-3 h-3 bg-zinc-600 rounded-full"></div>
+                </div>
+                <h3 class="text-xl font-bold mb-1">Q4 2025</h3>
+                <p class="text-zinc-300 mb-2">Mainnet Launch & CEX Listing</p>
+                <p class="text-sm text-zinc-400">Full platform launch with Module Marketplace and CEX listing.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOMO Section -->
+    <section class="bg-dark-lighter py-16">
+        <div class="max-w-4xl mx-auto px-6">
+            <h2 class="text-3xl font-bold mb-8">You Missed Render? Don't Miss LilyPad.</h2>
+            
+            <div class="bg-dark p-8 rounded-xl border border-zinc-800">
+                <table class="w-full text-left text-sm border-collapse">
+                    <thead class="text-zinc-400">
+                        <tr>
+                            <th class="pb-4"></th>
+                            <th class="pb-4">Render Network</th>
+                            <th class="pb-4">LilyPad</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-zinc-200">
+                        <tr class="border-t border-zinc-800">
+                            <td class="py-4 font-semibold">Initial FDV</td>
+                            <td>$300M</td>
+                            <td class="text-brand font-bold">$10M</td>
+                        </tr>
+                        <tr class="border-t border-zinc-800">
+                            <td class="py-4 font-semibold">Current Market Cap</td>
+                            <td>$1.5B+</td>
+                            <td>TBA</td>
+                        </tr>
+                        <tr class="border-t border-zinc-800">
+                            <td class="py-4 font-semibold">Private Sale Price</td>
+                            <td>$0.25</td>
+                            <td class="text-brand font-bold">$0.05</td>
+                        </tr>
+                        <tr class="border-t border-zinc-800">
+                            <td class="py-4 font-semibold">Upside from Private</td>
+                            <td>60x</td>
+                            <td class="text-brand font-bold">?</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- How to Participate -->
+    <section id="participate" class="max-w-5xl mx-auto px-6 py-16">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold">How to Participate</h2>
+            <p class="text-zinc-400 mt-2">Three simple steps to secure your allocation</p>
+        </div>
+        
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="bg-dark-lighter p-6 rounded-xl border border-zinc-800 relative">
+                <div class="absolute -top-4 -left-4 w-8 h-8 bg-brand rounded-full flex items-center justify-center text-black font-bold">1</div>
+                <h3 class="font-semibold mb-3 mt-2">Connect Wallet & KYC</h3>
+                <p class="text-sm text-zinc-400">Complete our simple KYC process to comply with regulations.</p>
+            </div>
+            
+            <div class="bg-dark-lighter p-6 rounded-xl border border-zinc-800 relative">
+                <div class="absolute -top-4 -left-4 w-8 h-8 bg-brand rounded-full flex items-center justify-center text-black font-bold">2</div>
+                <h3 class="font-semibold mb-3 mt-2">Commit USDC or ETH</h3>
+                <p class="text-sm text-zinc-400">Minimum commitment of $500, maximum $100,000 per wallet.</p>
+            </div>
+            
+            <div class="bg-dark-lighter p-6 rounded-xl border border-zinc-800 relative">
+                <div class="absolute -top-4 -left-4 w-8 h-8 bg-brand rounded-full flex items-center justify-center text-black font-bold">3</div>
+                <h3 class="font-semibold mb-3 mt-2">Receive $LPAD at TGE</h3>
+                <p class="text-sm text-zinc-400">Tokens will be distributed according to the published vesting schedule.</p>
+            </div>
+        </div>
+        
+        <div class="flex justify-center mt-12">
+            <a href="#" class="px-8 py-4 bg-brand hover:bg-brand-600 rounded-lg font-semibold text-black">
+                Join Whitelist
+            </a>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="bg-dark-lighter py-16">
+        <div class="max-w-4xl mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold">Frequently Asked Questions</h2>
+                <p class="text-zinc-400 mt-2">Addressing common concerns</p>
+            </div>
+            
+            <div class="space-y-4">
+                <details class="bg-dark p-6 rounded-xl">
+                    <summary class="cursor-pointer font-semibold flex items-center justify-between">
+                        Will the team dump tokens?
+                        <i data-feather="chevron-down" class="w-5 h-5"></i>
+                    </summary>
+                    <p class="mt-4 text-sm text-zinc-300">Team tokens have a 24-month linear vest after a 6-month cliff. All locks are enforced via multisig and verifiable on-chain.</p>
+                </details>
+                
+                <details class="bg-dark p-6 rounded-xl">
+                    <summary class="cursor-pointer font-semibold flex items-center justify-between">
+                        Is liquidity locked?
+                        <i data-feather="chevron-down" class="w-5 h-5"></i>
+                    </summary>
+                    <p class="mt-4 text-sm text-zinc-300">10% of the raise is automatically provided as LPAD-USDC liquidity and locked for 12 months via TrustSwap.</p>
+                </details>
+                
+                <details class="bg-dark p-6 rounded-xl">
+                    <summary class="cursor-pointer font-semibold flex items-center justify-between">
+                        Is the product real?
+                        <i data-feather="chevron-down" class="w-5 h-5"></i>
+                    </summary>
+                    <p class="mt-4 text-sm text-zinc-300">Yes – the compute testnet is live. Try it <a href="https://testnet.lilypad.tech" class="text-brand hover:underline">here</a> or view the demo video on YouTube.</p>
+                </details>
+                
+                <details class="bg-dark p-6 rounded-xl">
+                    <summary class="cursor-pointer font-semibold flex items-center justify-between">
+                        What makes LilyPad different from other GPU plays?
+                        <i data-feather="chevron-down" class="w-5 h-5"></i>
+                    </summary>
+                    <p class="mt-4 text-sm text-zinc-300">Our tri-pillar moat: Model Marketplace + Decentralized Compute + Data-Enrichment. No other project offers the full stack.</p>
+                </details>
+                
+                <details class="bg-dark p-6 rounded-xl">
+                    <summary class="cursor-pointer font-semibold flex items-center justify-between">
+                        Why not wait for the public sale?
+                        <i data-feather="chevron-down" class="w-5 h-5"></i>
+                    </summary>
+                    <p class="mt-4 text-sm text-zinc-300">Private price is a 50% discount plus staking bonus. Public allocation is hard-capped and expected to oversubscribe.</p>
+                </details>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Newsletter -->
+    <section class="max-w-5xl mx-auto px-6 py-16">
+        <div class="bg-brand/10 rounded-2xl p-8 border border-brand/20">
+            <div class="text-center">
+                <h2 class="text-2xl font-bold mb-2">Stay updated with Lilypad</h2>
+                <p class="text-zinc-300 mb-6">Get notified about the token sale and product updates</p>
+                
+                <form class="max-w-md mx-auto flex">
+                    <input type="email" placeholder="Enter your email" class="flex-1 px-4 py-3 bg-dark rounded-l-lg focus:outline-none">
+                    <button type="submit" class="px-6 py-3 bg-brand hover:bg-brand-600 rounded-r-lg font-semibold text-black">
+                        Subscribe
+                    </button>
+                </form>
+                
+                <p class="mt-4 text-xs text-zinc-400">We care about your data. See our <a href="#" class="text-brand hover:underline">privacy policy</a>.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark py-12">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row items-center justify-between mb-8">
+                <div class="flex items-center gap-2 mb-6 md:mb-0">
+                    <img src="../lilypad-logo.svg" alt="LilyPad Logo" class="h-10 w-auto">
+                </div>
+                
+                <div class="flex gap-6">
+                    <a href="#" class="text-zinc-500 hover:text-brand">
+                        <i data-feather="twitter" class="w-5 h-5"></i>
+                    </a>
+                    <a href="#" class="text-zinc-500 hover:text-brand">
+                        <i data-feather="github" class="w-5 h-5"></i>
+                    </a>
+                    <a href="#" class="text-zinc-500 hover:text-brand">
+                        <i data-feather="message-square" class="w-5 h-5"></i>
+                    </a>
+                    <a href="#" class="text-zinc-500 hover:text-brand">
+                        <i data-feather="send" class="w-5 h-5"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="border-t border-zinc-800 pt-8">
+                <div class="flex flex-wrap justify-center gap-x-8 gap-y-4 mb-8">
+                    <a href="#" class="text-zinc-400 hover:text-white text-sm">About</a>
+                    <a href="#" class="text-zinc-400 hover:text-white text-sm">Blog</a>
+                    <a href="#" class="text-zinc-400 hover:text-white text-sm">Docs</a>
+                    <a href="#" class="text-zinc-400 hover:text-white text-sm">Bounty Board</a>
+                    <a href="#" class="text-zinc-400 hover:text-white text-sm">Press Kit</a>
+                    <a href="#" class="text-zinc-400 hover:text-white text-sm">Privacy Policy</a>
+                    <a href="#" class="text-zinc-400 hover:text-white text-sm">Terms of Use</a>
+                </div>
+                
+                <p class="text-center text-zinc-500 text-sm">© 2025 Lilypad. All rights reserved. Not investment advice.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+    <script src="js/sphere-animation.js"></script>
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>
