@@ -15,5 +15,5 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
-          folder: landing
+          folder: .  # This is already set to the root directory
           clean: true
