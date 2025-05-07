@@ -45,20 +45,20 @@ document.addEventListener('DOMContentLoaded', function() {
             this.x = -20 + (Math.random() * fullWidth);
             this.y = Math.random() * canvas.height;
             
-            // Slower speed for more consistent flow
-            this.speed = 0.05 + Math.random() * 0.15;
+            // Much slower speed for more elegant flow
+            this.speed = 0.01 + Math.random() * 0.04; // Reduced speed by ~75%
             this.processing = Math.random() > 0.7;
             this.connections = [];
             this.alpha = 0.2 + Math.random() * 0.3;
             
             // Subtle pulse effect instead of data packets
             this.pulsePhase = Math.random() * Math.PI * 2;
-            this.pulseSpeed = 0.01 + Math.random() * 0.02; // Slower pulse
+            this.pulseSpeed = 0.005 + Math.random() * 0.01; // Even slower pulse
         }
         
         update(timeElapsed) {
-            // Simple acceleration
-            const speedFactor = Math.min(1 + (timeElapsed / 10000), 5);
+            // Minimal acceleration for more consistent movement
+            const speedFactor = Math.min(1 + (timeElapsed / 30000), 2); // Slower acceleration
             
             // Move right
             this.x += this.speed * speedFactor;
@@ -94,8 +94,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function createNodes() {
         nodes = [];
         
-        // Create an appropriate number of nodes for the container size
-        const count = Math.max(40, Math.floor((canvas.width * canvas.height) / 3000));
+        // Create more nodes for denser connections and more solid shapes
+        const count = Math.max(50, Math.floor((canvas.width * canvas.height) / 2500)); // Increased node count
         
         // Create evenly distributed nodes across the container width
         for (let i = 0; i < count; i++) {
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
             nodes.push(node);
         }
         
-        // Create connections - each node connects to 3-5 others
+        // Create connections - each node connects to more others for solid shapes
         nodes.forEach(node => {
             node.connections = [];
             
@@ -124,8 +124,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     return distA - distB;
                 });
             
-            // Connect to 3-6 closest nodes (increased for denser connections)
-            const connectionCount = 3 + Math.floor(Math.random() * 4);
+            // Connect to 5-9 closest nodes for denser, more solid-looking shapes
+            const connectionCount = 5 + Math.floor(Math.random() * 5);
             node.connections = otherNodes.slice(0, connectionCount);
         });
         
@@ -145,14 +145,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // Draw connections
         nodes.forEach(node => {
             node.connections.forEach(connected => {
-                // Only draw if reasonable distance
+                // Only draw if reasonable distance - increased for more solid shapes
                 const dx = node.x - connected.x;
                 const dy = node.y - connected.y;
                 const distance = Math.sqrt(dx*dx + dy*dy);
                 
-                if (distance < 250) {
+                if (distance < 300) { // Increased from 250 for more connections
                     // Calculate connection opacity based on distance
-                    const alpha = 0.5 * (1 - distance/250);
+                    const alpha = 0.6 * (1 - distance/300); // Higher base opacity (0.6 vs 0.5)
                     
                     // Subtly enhanced connection for processing nodes
                     let connectionAlpha = alpha;
@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     ctx.moveTo(node.x, node.y);
                     ctx.lineTo(connected.x, connected.y);
                     ctx.strokeStyle = `rgba(8, 212, 203, ${connectionAlpha})`;
-                    ctx.lineWidth = 0.5;
+                    ctx.lineWidth = 0.7; // Slightly thicker lines for more solid appearance
                     ctx.stroke();
                 }
             });
