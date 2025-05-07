@@ -130,13 +130,14 @@ class SphereAnimation {
         this.ctx.stroke();
         
         // Now draw the particles
-        for (const p of this.particles) {
+        for (let i = 0; i < this.particles.length; i++) {
+            const p = this.particles[i];
             // Calculate size based on z-position for depth effect
             const sizeModifier = (p.z + this.radius) / (2 * this.radius);
-            const adjustedSize = p.size * sizeModifier * 1.5;
+            let adjustedSize = p.size * sizeModifier * 1.5;
             
             // Calculate opacity based on z-position
-            const opacity = sizeModifier * 0.8 + 0.2;
+            let opacity = sizeModifier * 0.8 + 0.2;
             
             const screenX = this.center.x + p.x;
             const screenY = this.center.y + p.y;

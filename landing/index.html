@@ -131,6 +131,70 @@
         a:hover [data-feather] {
             transform: translateY(-2px);
         }
+        
+        /* Model configuration tooltips */
+        .model-config-card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 280px;
+            padding: 16px;
+            border-radius: 12px;
+            background: rgba(8, 212, 203, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(8, 212, 203, 0.3);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .model-config-card.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .config-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .config-header .gpu-icon {
+            width: 24px;
+            height: 24px;
+            background: rgba(8, 212, 203, 0.2);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-left: 8px;
+        }
+        
+        .model-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #08D4CB;
+        }
+        
+        .pricing-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        
+        .pricing-row .label {
+            font-size: 14px;
+            color: #a1a1aa;
+        }
+        
+        .pricing-row .value {
+            font-size: 14px;
+            font-weight: 500;
+            color: #ffffff;
+        }
     </style>
 </head>
 
@@ -230,11 +294,70 @@
                 </div>
             </div>
             
-            <!-- Right side visual -->
-            <div class="relative flex items-center justify-center">
-                <div class="w-80 h-80 rounded-full bg-brand/5 flex items-center justify-center">
-                    <div class="w-64 h-64 rounded-full bg-brand/10 border border-brand/20 flex items-center justify-center custom-glow">
-                        <canvas id="sphereCanvas" class="w-full h-full"></canvas>
+            <!-- Right side with sphere and model configs -->
+            <div class="relative">
+                <!-- Sphere container - restored to original size -->
+                <div class="w-64 h-64 rounded-full bg-brand/10 border border-brand/20 flex items-center justify-center custom-glow">
+                    <canvas id="sphereCanvas" class="w-full h-full"></canvas>
+                </div>
+                
+                <!-- Model configurations floating next to sphere -->
+                <div class="model-configs">
+                    <!-- Config 1: NVIDIA 4090s -->
+                    <div id="config-1" class="model-config-card" data-config-id="1">
+                        <div class="config-header">
+                            <span>NVIDIA 4090s Available</span>
+                            <div class="gpu-icon"></div>
+                        </div>
+                        <div class="config-body">
+                            <div class="model-name">DeepSeek R1</div>
+                            <div class="pricing-row">
+                                <span class="label">Input:</span>
+                                <span class="value">$0.0009 / 1K tokens</span>
+                            </div>
+                            <div class="pricing-row">
+                                <span class="label">Output:</span>
+                                <span class="value">$0.0018 / 1K tokens</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Config 2: AMD MI300 -->
+                    <div id="config-2" class="model-config-card" data-config-id="2">
+                        <div class="config-header">
+                            <span>AMD MI300 Available</span>
+                            <div class="gpu-icon"></div>
+                        </div>
+                        <div class="config-body">
+                            <div class="model-name">Llama 3 70B</div>
+                            <div class="pricing-row">
+                                <span class="label">Input:</span>
+                                <span class="value">$0.0006 / 1K tokens</span>
+                            </div>
+                            <div class="pricing-row">
+                                <span class="label">Output:</span>
+                                <span class="value">$0.0012 / 1K tokens</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Config 3: A100 GPUs -->
+                    <div id="config-3" class="model-config-card" data-config-id="3">
+                        <div class="config-header">
+                            <span>NVIDIA A100 GPUs</span>
+                            <div class="gpu-icon"></div>
+                        </div>
+                        <div class="config-body">
+                            <div class="model-name">Claude 3 Opus</div>
+                            <div class="pricing-row">
+                                <span class="label">Input:</span>
+                                <span class="value">$0.0015 / 1K tokens</span>
+                            </div>
+                            <div class="pricing-row">
+                                <span class="label">Output:</span>
+                                <span class="value">$0.0075 / 1K tokens</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1187,6 +1310,41 @@
                         `conic-gradient(from 0deg, rgba(8, 212, 203, 0.8) 0% ${currentProgress}%, transparent ${currentProgress}% 100%)`;
                 }, 800);
             }
+        });
+        
+        // Model configuration animations
+        document.addEventListener('DOMContentLoaded', function() {
+            const configs = document.querySelectorAll('.model-config-card');
+            
+            // Function to trigger a ping and highlight a config
+            function activateConfig(index) {
+                // Hide all configs
+                configs.forEach(config => {
+                    config.classList.remove('active');
+                });
+                
+                // Show selected config with delay
+                setTimeout(() => {
+                    configs[index].classList.add('active');
+                    
+                    // Dispatch event for sphere ping
+                    const configId = configs[index].dataset.configId;
+                    const pingEvent = new CustomEvent('spherePing', { 
+                        detail: { configId: parseInt(configId) }
+                    });
+                    document.dispatchEvent(pingEvent);
+                }, 300);
+            }
+            
+            // Initially activate first config
+            setTimeout(() => activateConfig(0), 1000);
+            
+            // Cycle through configs every 5 seconds
+            let currentIndex = 0;
+            setInterval(() => {
+                currentIndex = (currentIndex + 1) % configs.length;
+                activateConfig(currentIndex);
+            }, 7000);
         });
     </script>
 </body>
