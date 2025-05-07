@@ -35,13 +35,13 @@ document.addEventListener('DOMContentLoaded', function() {
     let nodes = [];
     const startTime = Date.now();
     
-    // Enhanced Node class for better edge-to-edge coverage
+    // Node class with simplified visuals (no packet animations)
     class Node {
         constructor() {
             this.size = 2 + Math.random() * 3;
             
-            // Start nodes across the full width of the container (including slightly off-screen)
-            const fullWidth = canvas.width + 40; // Add small buffer
+            // Start nodes across the full width of the container
+            const fullWidth = canvas.width + 40;
             this.x = -20 + (Math.random() * fullWidth);
             this.y = Math.random() * canvas.height;
             
@@ -50,6 +50,10 @@ document.addEventListener('DOMContentLoaded', function() {
             this.processing = Math.random() > 0.7;
             this.connections = [];
             this.alpha = 0.2 + Math.random() * 0.3;
+            
+            // Subtle pulse effect instead of data packets
+            this.pulsePhase = Math.random() * Math.PI * 2;
+            this.pulseSpeed = 0.01 + Math.random() * 0.02; // Slower pulse
         }
         
         update(timeElapsed) {
@@ -64,12 +68,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.x = -20;
                 this.y = Math.random() * canvas.height;
             }
+            
+            // Subtle pulse effect for processing nodes
+            if (this.processing) {
+                this.pulsePhase += this.pulseSpeed;
+            }
         }
         
         draw() {
+            // Add subtle pulse to node alpha for processing nodes
+            let drawAlpha = this.alpha;
+            if (this.processing) {
+                const pulseFactor = 0.5 + 0.5 * Math.sin(this.pulsePhase);
+                drawAlpha = this.alpha + (0.2 * pulseFactor);
+            }
+            
             ctx.beginPath();
             ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(8, 212, 203, ${this.processing ? this.alpha + 0.2 : this.alpha})`;
+            ctx.fillStyle = `rgba(8, 212, 203, ${drawAlpha})`;
             ctx.fill();
         }
     }
@@ -129,33 +145,28 @@ document.addEventListener('DOMContentLoaded', function() {
         // Draw connections
         nodes.forEach(node => {
             node.connections.forEach(connected => {
-                // Only draw if reasonable distance - increased for wider connections
+                // Only draw if reasonable distance
                 const dx = node.x - connected.x;
                 const dy = node.y - connected.y;
                 const distance = Math.sqrt(dx*dx + dy*dy);
                 
-                if (distance < 250) { // Increased connection distance
+                if (distance < 250) {
+                    // Calculate connection opacity based on distance
                     const alpha = 0.5 * (1 - distance/250);
                     
+                    // Subtly enhanced connection for processing nodes
+                    let connectionAlpha = alpha;
+                    if (node.processing || connected.processing) {
+                        connectionAlpha *= 1.2; // Slightly brighter connections for active nodes
+                    }
+                    
+                    // Draw connection line
                     ctx.beginPath();
                     ctx.moveTo(node.x, node.y);
                     ctx.lineTo(connected.x, connected.y);
-                    ctx.strokeStyle = `rgba(8, 212, 203, ${alpha})`;
+                    ctx.strokeStyle = `rgba(8, 212, 203, ${connectionAlpha})`;
                     ctx.lineWidth = 0.5;
                     ctx.stroke();
-                    
-                    // Data packets
-                    if ((node.processing || connected.processing) && node.x <= connected.x) {
-                        const time = Date.now() / 1000;
-                        const packetPosition = (time * 0.5) % 1;
-                        const x = node.x + (connected.x - node.x) * packetPosition;
-                        const y = node.y + (connected.y - node.y) * packetPosition;
-                        
-                        ctx.beginPath();
-                        ctx.arc(x, y, 2, 0, Math.PI * 2);
-                        ctx.fillStyle = 'rgba(8, 212, 203, 0.8)';
-                        ctx.fill();
-                    }
                 }
             });
         });
