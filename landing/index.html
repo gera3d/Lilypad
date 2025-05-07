@@ -48,6 +48,67 @@
             height: 18px;
             fill: currentColor;
         }
+        
+        @keyframes countdownPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .animation-delay-300 {
+            animation-delay: 300ms;
+        }
+        .animation-delay-600 {
+            animation-delay: 600ms;
+        }
+        .animation-delay-900 {
+            animation-delay: 900ms;
+        }
+        
+        @keyframes floatOrb1 {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(10px, -10px); }
+            50% { transform: translate(5px, 10px); }
+            75% { transform: translate(-8px, 5px); }
+            100% { transform: translate(0, 0); }
+        }
+        
+        @keyframes floatOrb2 {
+            0% { transform: translate(0, 0); }
+            33% { transform: translate(-12px, 8px); }
+            66% { transform: translate(8px, 12px); }
+            100% { transform: translate(0, 0); }
+        }
+        
+        @keyframes floatOrb3 {
+            0% { transform: translate(0, 0); }
+            20% { transform: translate(-5px, -8px); }
+            40% { transform: translate(10px, 0px); }
+            60% { transform: translate(5px, 10px); }
+            80% { transform: translate(-8px, 5px); }
+            100% { transform: translate(0, 0); }
+        }
+        
+        @keyframes slowSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .animate-float-1 {
+            animation: floatOrb1 15s ease-in-out infinite;
+        }
+        
+        .animate-float-2 {
+            animation: floatOrb2 18s ease-in-out infinite;
+        }
+        
+        .animate-float-3 {
+            animation: floatOrb3 20s ease-in-out infinite;
+        }
+        
+        .animate-slow-spin {
+            animation: slowSpin 30s linear infinite;
+        }
     </style>
 </head>
 
@@ -137,7 +198,7 @@
                         </svg>
                     </a>
                     <a href="https://discord.gg/lilypad" target="_blank" rel="noopener" class="text-zinc-500 hover:text-brand icon-discord" aria-label="Discord">
-                        <svg viewBox="0 -28.5 256 256" version="1.1" preserveAspectRatio="xMidYMid">
+                        <svg viewBox="https://discord.gg/lilypad" target="_blank" rel="noopener" class="text-zinc-500 hover:text-brand icon-discord" aria-label="Discord">
                             <path d="M216.856339,16.5966031 C200.285002,8.84328665 182.566144,3.2084988 164.041564,0 C161.766523,4.11318106 159.108624,9.64549908 157.276099,14.0464379 C137.583995,11.0849896 118.072967,11.0849896 98.7430163,14.0464379 C96.9108417,9.64549908 94.1925838,4.11318106 91.8971895,0 C73.3526068,3.2084988 55.6133949,8.86399117 39.0420583,16.6376612 C5.61752293,67.146514 -3.4433191,116.400813 1.08711069,164.955721 C23.2560196,181.510915 44.7403634,191.567697 65.8621325,198.148576 C71.0772151,190.971126 75.7283628,183.341335 79.7352139,175.300261 C72.104019,172.400575 64.7949724,168.822202 57.8887866,164.667963 C59.7209612,163.310589 61.5131304,161.891452 63.2445898,160.431257 C105.36741,180.133187 151.134928,180.133187 192.754523,160.431257 C194.506336,161.891452 196.298154,163.310589 198.110326,164.667963 C191.183787,168.842556 183.854737,172.420929 176.223542,175.320965 C180.230393,183.341335 184.861538,190.991831 190.096624,198.16893 C211.238746,191.588051 232.743023,181.531619 254.911949,164.955721 C260.227747,108.668201 245.831087,59.8662432 216.856339,16.5966031 Z M85.4738752,135.09489 C72.8290281,135.09489 62.4592217,123.290155 62.4592217,108.914901 C62.4592217,94.5396472 72.607595,82.7145587 85.4738752,82.7145587 C98.3405064,82.7145587 108.709962,94.5189427 108.488529,108.914901 C108.508531,123.290155 98.3405064,135.09489 85.4738752,135.09489 Z M170.525237,135.09489 C157.88039,135.09489 147.510584,123.290155 147.510584,108.914901 C147.510584,94.5396472 157.658606,82.7145587 170.525237,82.7145587 C183.391518,82.7145587 193.761324,94.5189427 193.539891,108.914901 C193.539891,123.290155 183.391518,135.09489 170.525237,135.09489 Z"/>
                         </svg>
                     </a>
@@ -158,23 +219,109 @@
         </div>
     </header>
 
-    <!-- Scarcity & Urgency Stripe -->
-    <section class="max-w-3xl mx-auto px-6 py-8">
-        <h2 class="text-2xl font-bold mb-6">Private Sale Progress</h2>
+    <!-- Enhanced Scarcity & Urgency Section with Sphere Connection -->
+    <section class="relative max-w-4xl mx-auto px-6 py-16 overflow-hidden">
+        <!-- Background glow effect connecting to hero sphere -->
+        <div class="absolute inset-0 overflow-hidden">
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-brand/5 opacity-20 blur-3xl"></div>
+        </div>
         
-        <div class="flex flex-col md:flex-row items-center gap-6 mb-6">
-            <div class="flex-1 w-full">
-                <div class="w-full bg-zinc-800 rounded-full h-4">
-                    <div id="progressBar" class="h-4 bg-brand rounded-full" style="width:35%"></div>
+        <div class="relative z-10">
+            <h2 class="text-3xl font-bold text-center mb-10">Private Sale Progress</h2>
+            
+            <div class="bg-dark p-8 rounded-2xl border border-zinc-800 shadow-xl">
+                <div class="flex flex-col md:flex-row items-center gap-10">
+                    <!-- Left side: Enhanced progress circle mimicking the hero sphere -->
+                    <div class="w-full md:w-1/2 flex justify-center">
+                        <div class="relative w-64 h-64" id="progressSphereContainer">
+                            <!-- Background gradient for sphere effect -->
+                            <div class="absolute inset-0 rounded-full bg-gradient-to-br from-brand/20 to-brand/5 border border-brand/20 custom-glow"></div>
+                            
+                            <!-- Animated gradient overlay for "liquid" effect -->
+                            <div class="absolute inset-0 rounded-full overflow-hidden">
+                                <div class="absolute inset-0 animate-slow-spin" style="background: linear-gradient(45deg, transparent 25%, rgba(8, 212, 203, 0.1) 50%, transparent 75%);"></div>
+                            </div>
+                            
+                            <!-- Progress circle with gradient fill -->
+                            <div id="progressCircle" class="absolute inset-0 rounded-full" style="background: conic-gradient(from 0deg, rgba(8, 212, 203, 0.8) 0% 36.6%, transparent 36.6% 100%)"></div>
+                            
+                            <!-- Highlight effect at top of sphere -->
+                            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-6 bg-brand/20 rounded-full blur-md"></div>
+                            
+                            <!-- Inner dark circle with stats -->
+                            <div class="absolute inset-6 rounded-full bg-dark flex items-center justify-center" style="box-shadow: inset 0 8px 16px rgba(0, 0, 0, 0.5)">
+                                <div class="text-center">
+                                    <div class="text-4xl font-bold text-white mb-1">36.6%</div>
+                                    <div class="text-brand font-semibold">$3.66M / $10M</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Floating orbs/mini-spheres -->
+                            <div class="floating-orb absolute w-6 h-6 rounded-full bg-gradient-to-br from-brand to-brand/30 animate-float-1 opacity-70 blur-[1px]" style="top: 10%; left: 20%;"></div>
+                            <div class="floating-orb absolute w-4 h-4 rounded-full bg-gradient-to-br from-brand to-brand/30 animate-float-2 opacity-60 blur-[1px]" style="top: 70%; left: 15%;"></div>
+                            <div class="floating-orb absolute w-8 h-8 rounded-full bg-gradient-to-br from-brand/70 to-brand/20 animate-float-3 opacity-50 blur-[1px]" style="top: 30%; right: 10%;"></div>
+                            <div class="floating-orb absolute w-3 h-3 rounded-full bg-gradient-to-br from-brand to-brand/30 animate-float-1 opacity-80 blur-[1px]" style="bottom: 20%; right: 25%;"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right side: Timer with visual enhancements -->
+                    <div class="w-full md:w-1/2">
+                        <div class="text-center md:text-left mb-4">
+                            <h3 class="text-xl font-semibold text-zinc-100">Sale ends in</h3>
+                        </div>
+                        
+                        <!-- Enhanced countdown timer -->
+                        <div class="grid grid-cols-4 gap-3">
+                            <div class="bg-dark relative overflow-hidden p-4 rounded-lg border border-zinc-800 text-center">
+                                <!-- Subtle sphere glow in background -->
+                                <div class="absolute inset-0 w-full h-full opacity-10">
+                                    <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full bg-brand/30 blur-xl"></div>
+                                </div>
+                                <div class="relative">
+                                    <div class="text-3xl font-mono font-bold text-white" id="days">25</div>
+                                    <div class="text-zinc-500 text-xs mt-1">DAYS</div>
+                                </div>
+                            </div>
+                            <div class="bg-dark relative overflow-hidden p-4 rounded-lg border border-zinc-800 text-center">
+                                <div class="absolute inset-0 w-full h-full opacity-10">
+                                    <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full bg-brand/30 blur-xl"></div>
+                                </div>
+                                <div class="relative">
+                                    <div class="text-3xl font-mono font-bold text-white" id="hours">11</div>
+                                    <div class="text-zinc-500 text-xs mt-1">HOURS</div>
+                                </div>
+                            </div>
+                            <div class="bg-dark relative overflow-hidden p-4 rounded-lg border border-zinc-800 text-center">
+                                <div class="absolute inset-0 w-full h-full opacity-10">
+                                    <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full bg-brand/30 blur-xl"></div>
+                                </div>
+                                <div class="relative">
+                                    <div class="text-3xl font-mono font-bold text-white" id="minutes">05</div>
+                                    <div class="text-zinc-500 text-xs mt-1">MINUTES</div>
+                                </div>
+                            </div>
+                            <div class="bg-dark relative overflow-hidden p-4 rounded-lg border border-zinc-800 text-center">
+                                <div class="absolute inset-0 w-full h-full opacity-10">
+                                    <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full bg-brand/30 blur-xl"></div>
+                                </div>
+                                <div class="relative">
+                                    <div class="text-3xl font-mono font-bold text-brand" id="seconds">49</div>
+                                    <div class="text-zinc-500 text-xs mt-1">SECONDS</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Interactive call-to-action with glow -->
+                        <div class="mt-8">
+                            <a href="#participate" class="group w-full bg-dark-lighter border border-brand/20 hover:border-brand/70 rounded-lg p-4 flex items-center justify-between transition-all">
+                                <span class="text-zinc-300 group-hover:text-white">Secure your allocation before it's gone</span>
+                                <div class="bg-brand rounded-full p-2 transform group-hover:scale-110 transition-transform">
+                                    <i data-feather="arrow-right" class="w-4 h-4 text-black"></i>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex justify-between mt-2 text-sm text-zinc-400">
-                    <span id="progressText">35% sold</span>
-                    <span>Target: $10M</span>
-                </div>
-            </div>
-            <div class="px-6 py-3 bg-dark-lighter border border-zinc-700 rounded-lg">
-                <div class="text-xs text-zinc-400 mb-1">Sale ends in</div>
-                <div class="text-xl font-mono text-white" id="countdown">04d 12h 00m 00s</div>
             </div>
         </div>
     </section>
@@ -955,7 +1102,7 @@
                         </svg>
                     </a>
                     <a href="https://discord.gg/lilypad" target="_blank" rel="noopener" class="text-zinc-500 hover:text-brand icon-discord" aria-label="Discord">
-                        <svg viewBox="0 -28.5 256 256" version="1.1" preserveAspectRatio="xMidYMid">
+                        <svg viewBox="https://discord.gg/lilypad" target="_blank" rel="noopener" class="text-zinc-500 hover:text-brand icon-discord" aria-label="Discord">
                             <path d="M216.856339,16.5966031 C200.285002,8.84328665 182.566144,3.2084988 164.041564,0 C161.766523,4.11318106 159.108624,9.64549908 157.276099,14.0464379 C137.583995,11.0849896 118.072967,11.0849896 98.7430163,14.0464379 C96.9108417,9.64549908 94.1925838,4.11318106 91.8971895,0 C73.3526068,3.2084988 55.6133949,8.86399117 39.0420583,16.6376612 C5.61752293,67.146514 -3.4433191,116.400813 1.08711069,164.955721 C23.2560196,181.510915 44.7403634,191.567697 65.8621325,198.148576 C71.0772151,190.971126 75.7283628,183.341335 79.7352139,175.300261 C72.104019,172.400575 64.7949724,168.822202 57.8887866,164.667963 C59.7209612,163.310589 61.5131304,161.891452 63.2445898,160.431257 C105.36741,180.133187 151.134928,180.133187 192.754523,160.431257 C194.506336,161.891452 196.298154,163.310589 198.110326,164.667963 C191.183787,168.842556 183.854737,172.420929 176.223542,175.320965 C180.230393,183.341335 184.861538,190.991831 190.096624,198.16893 C211.238746,191.588051 232.743023,181.531619 254.911949,164.955721 C260.227747,108.668201 245.831087,59.8662432 216.856339,16.5966031 Z M85.4738752,135.09489 C72.8290281,135.09489 62.4592217,123.290155 62.4592217,108.914901 C62.4592217,94.5396472 72.607595,82.7145587 85.4738752,82.7145587 C98.3405064,82.7145587 108.709962,94.5189427 108.488529,108.914901 C108.508531,123.290155 98.3405064,135.09489 85.4738752,135.09489 Z M170.525237,135.09489 C157.88039,135.09489 147.510584,123.290155 147.510584,108.914901 C147.510584,94.5396472 157.658606,82.7145587 170.525237,82.7145587 C183.391518,82.7145587 193.761324,94.5189427 193.539891,108.914901 C193.539891,123.290155 183.391518,135.09489 170.525237,135.09489 Z"/>
                         </svg>
                     </a>
@@ -985,6 +1132,66 @@
     <script src="js/sphere-animation.js"></script>
     <script>
         feather.replace();
+    </script>
+    
+    <!-- Script to make the countdown dynamic -->
+    <script>
+        // Add this to your existing scripts section
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set the target date (example: 25 days from now)
+            const targetDate = new Date();
+            targetDate.setDate(targetDate.getDate() + 25);
+            targetDate.setHours(targetDate.getHours() + 11);
+            targetDate.setMinutes(targetDate.getMinutes() + 5);
+            targetDate.setSeconds(targetDate.getSeconds() + 49);
+            
+            // Update the countdown every second
+            const countdownInterval = setInterval(function() {
+                const now = new Date().getTime();
+                const distance = targetDate - now;
+                
+                // Time calculations
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                
+                // Display the result with leading zeros
+                document.getElementById("days").innerHTML = days.toString().padStart(2, '0');
+                document.getElementById("hours").innerHTML = hours.toString().padStart(2, '0');
+                document.getElementById("minutes").innerHTML = minutes.toString().padStart(2, '0');
+                document.getElementById("seconds").innerHTML = seconds.toString().padStart(2, '0');
+                
+                // If the countdown is finished, clear the interval
+                if (distance < 0) {
+                    clearInterval(countdownInterval);
+                    document.getElementById("days").innerHTML = "00";
+                    document.getElementById("hours").innerHTML = "00";
+                    document.getElementById("minutes").innerHTML = "00";
+                    document.getElementById("seconds").innerHTML = "00";
+                }
+            }, 1000);
+            
+            // Enhanced progress circle with animated effects
+            const progressCircle = document.getElementById('progressCircle');
+            let currentProgress = 36.6;
+            let progressDirection = 1;
+            
+            // Create a subtle "breathing" effect for the progress indicator
+            setInterval(() => {
+                // Very slight movement to simulate a "liquid" effect
+                const fluctuation = (Math.random() - 0.5) * 0.2;
+                currentProgress += fluctuation;
+                
+                // Keep progress within reasonable bounds
+                if (currentProgress < 36.4) currentProgress = 36.4;
+                if (currentProgress > 36.8) currentProgress = 36.8;
+                
+                // Update the progress circle with gradient
+                progressCircle.style.background = 
+                    `conic-gradient(from 0deg, rgba(8, 212, 203, 0.8) 0% ${currentProgress}%, transparent ${currentProgress}% 100%)`;
+            }, 800);
+        });
     </script>
 </body>
 </html>
