@@ -219,28 +219,23 @@
         </div>
     </header>
 
-    <!-- Enhanced Scarcity & Urgency Section with Sphere Connection -->
+    <!-- Enhanced Scarcity & Urgency Section with Network Flow Animation -->
     <section class="relative max-w-4xl mx-auto px-6 py-16 overflow-hidden">
-        <!-- Background glow effect connecting to hero sphere -->
-        <div class="absolute inset-0 overflow-hidden">
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-brand/5 opacity-20 blur-3xl"></div>
+        <!-- Network flow animation background -->
+        <div class="absolute inset-0 z-0">low-hidden">
+            <canvas id="networkFlowCanvas" class="w-full h-full opacity-20"></canvas>
         </div>
         
         <div class="relative z-10">
             <h2 class="text-3xl font-bold text-center mb-10">Private Sale Progress</h2>
             
-            <div class="bg-dark p-8 rounded-2xl border border-zinc-800 shadow-xl">
+            <div class="bg-dark/80 backdrop-blur-sm p-8 rounded-2xl border border-zinc-800 shadow-xl">
                 <div class="flex flex-col md:flex-row items-center gap-10">
-                    <!-- Left side: Enhanced progress circle mimicking the hero sphere -->
+                    <!-- Left side: Progress circle that mimics the sphere -->
                     <div class="w-full md:w-1/2 flex justify-center">
                         <div class="relative w-64 h-64" id="progressSphereContainer">
                             <!-- Background gradient for sphere effect -->
                             <div class="absolute inset-0 rounded-full bg-gradient-to-br from-brand/20 to-brand/5 border border-brand/20 custom-glow"></div>
-                            
-                            <!-- Animated gradient overlay for "liquid" effect -->
-                            <div class="absolute inset-0 rounded-full overflow-hidden">
-                                <div class="absolute inset-0 animate-slow-spin" style="background: linear-gradient(45deg, transparent 25%, rgba(8, 212, 203, 0.1) 50%, transparent 75%);"></div>
-                            </div>
                             
                             <!-- Progress circle with gradient fill -->
                             <div id="progressCircle" class="absolute inset-0 rounded-full" style="background: conic-gradient(from 0deg, rgba(8, 212, 203, 0.8) 0% 36.6%, transparent 36.6% 100%)"></div>
@@ -255,12 +250,6 @@
                                     <div class="text-brand font-semibold">$3.66M / $10M</div>
                                 </div>
                             </div>
-                            
-                            <!-- Floating orbs/mini-spheres -->
-                            <div class="floating-orb absolute w-6 h-6 rounded-full bg-gradient-to-br from-brand to-brand/30 animate-float-1 opacity-70 blur-[1px]" style="top: 10%; left: 20%;"></div>
-                            <div class="floating-orb absolute w-4 h-4 rounded-full bg-gradient-to-br from-brand to-brand/30 animate-float-2 opacity-60 blur-[1px]" style="top: 70%; left: 15%;"></div>
-                            <div class="floating-orb absolute w-8 h-8 rounded-full bg-gradient-to-br from-brand/70 to-brand/20 animate-float-3 opacity-50 blur-[1px]" style="top: 30%; right: 10%;"></div>
-                            <div class="floating-orb absolute w-3 h-3 rounded-full bg-gradient-to-br from-brand to-brand/30 animate-float-1 opacity-80 blur-[1px]" style="bottom: 20%; right: 25%;"></div>
                         </div>
                     </div>
                     
@@ -273,37 +262,24 @@
                         <!-- Enhanced countdown timer -->
                         <div class="grid grid-cols-4 gap-3">
                             <div class="bg-dark relative overflow-hidden p-4 rounded-lg border border-zinc-800 text-center">
-                                <!-- Subtle sphere glow in background -->
-                                <div class="absolute inset-0 w-full h-full opacity-10">
-                                    <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full bg-brand/30 blur-xl"></div>
-                                </div>
                                 <div class="relative">
                                     <div class="text-3xl font-mono font-bold text-white" id="days">25</div>
                                     <div class="text-zinc-500 text-xs mt-1">DAYS</div>
                                 </div>
                             </div>
                             <div class="bg-dark relative overflow-hidden p-4 rounded-lg border border-zinc-800 text-center">
-                                <div class="absolute inset-0 w-full h-full opacity-10">
-                                    <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full bg-brand/30 blur-xl"></div>
-                                </div>
                                 <div class="relative">
                                     <div class="text-3xl font-mono font-bold text-white" id="hours">11</div>
                                     <div class="text-zinc-500 text-xs mt-1">HOURS</div>
                                 </div>
                             </div>
                             <div class="bg-dark relative overflow-hidden p-4 rounded-lg border border-zinc-800 text-center">
-                                <div class="absolute inset-0 w-full h-full opacity-10">
-                                    <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full bg-brand/30 blur-xl"></div>
-                                </div>
                                 <div class="relative">
                                     <div class="text-3xl font-mono font-bold text-white" id="minutes">05</div>
                                     <div class="text-zinc-500 text-xs mt-1">MINUTES</div>
                                 </div>
                             </div>
                             <div class="bg-dark relative overflow-hidden p-4 rounded-lg border border-zinc-800 text-center">
-                                <div class="absolute inset-0 w-full h-full opacity-10">
-                                    <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full bg-brand/30 blur-xl"></div>
-                                </div>
                                 <div class="relative">
                                     <div class="text-3xl font-mono font-bold text-brand" id="seconds">49</div>
                                     <div class="text-zinc-500 text-xs mt-1">SECONDS</div>
@@ -1130,13 +1106,11 @@
 
     <script src="main.js"></script>
     <script src="js/sphere-animation.js"></script>
+    <script src="js/network-animation.js"></script>
     <script>
         feather.replace();
-    </script>
-    
-    <!-- Script to make the countdown dynamic -->
-    <script>
-        // Add this to your existing scripts section
+        
+        // Progress circle animation
         document.addEventListener('DOMContentLoaded', function() {
             // Set the target date (example: 25 days from now)
             const targetDate = new Date();
@@ -1172,25 +1146,24 @@
                 }
             }, 1000);
             
-            // Enhanced progress circle with animated effects
+            // Progress circle animation
             const progressCircle = document.getElementById('progressCircle');
-            let currentProgress = 36.6;
-            let progressDirection = 1;
-            
-            // Create a subtle "breathing" effect for the progress indicator
-            setInterval(() => {
-                // Very slight movement to simulate a "liquid" effect
-                const fluctuation = (Math.random() - 0.5) * 0.2;
-                currentProgress += fluctuation;
+            if (progressCircle) {
+                let currentProgress = 36.6;
                 
-                // Keep progress within reasonable bounds
-                if (currentProgress < 36.4) currentProgress = 36.4;
-                if (currentProgress > 36.8) currentProgress = 36.8;
-                
-                // Update the progress circle with gradient
-                progressCircle.style.background = 
-                    `conic-gradient(from 0deg, rgba(8, 212, 203, 0.8) 0% ${currentProgress}%, transparent ${currentProgress}% 100%)`;
-            }, 800);
+                setInterval(() => {
+                    // Subtle fluctuation for visual effect
+                    const fluctuation = (Math.random() - 0.5) * 0.2;
+                    currentProgress += fluctuation;
+                    
+                    // Keep within bounds
+                    if (currentProgress < 36.4) currentProgress = 36.4;
+                    if (currentProgress > 36.8) currentProgress = 36.8;
+                    
+                    progressCircle.style.background = 
+                        `conic-gradient(from 0deg, rgba(8, 212, 203, 0.8) 0% ${currentProgress}%, transparent ${currentProgress}% 100%)`;
+                }, 800);
+            }
         });
     </script>
 </body>
