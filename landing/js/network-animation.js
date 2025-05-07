@@ -9,21 +9,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const ctx = canvas.getContext('2d');
     const parent = canvas.parentElement;
     
-    // Improved resize function for true edge-to-edge coverage
+    // Repositioned canvas to push network animation down
     function resizeCanvas() {
         if (!parent) return;
         
-        // Get the actual full width
-        const fullWidth = document.documentElement.clientWidth; // Use full document width
+        // Create canvas with standard dimensions
+        const fullWidth = document.documentElement.clientWidth;
+        const fullHeight = parent.offsetHeight; // Standard height without extra padding
+        
         canvas.width = fullWidth;
-        canvas.height = parent.offsetHeight || 400;
+        canvas.height = fullHeight;
         
-        console.log('Canvas size:', canvas.width, 'x', canvas.height);
+        // Position canvas exactly within its container (not above)
+        canvas.style.position = 'absolute';
+        canvas.style.top = '0'; // Start at top of container instead of above
+        canvas.style.left = '0';
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
         
-        // Override parent styles if needed to ensure full width
-        parent.style.width = '100vw';
-        parent.style.maxWidth = '100vw';
-        parent.style.marginLeft = 'calc(50% - 50vw)'; // Offset any parent container padding
+        // Allow overflow for visible connections
         parent.style.overflow = 'hidden';
         
         // Recreate nodes on resize
@@ -35,38 +39,59 @@ document.addEventListener('DOMContentLoaded', function() {
     let nodes = [];
     const startTime = Date.now();
     
-    // Node class with simplified visuals (no packet animations)
+    // Edge safety constants
+    const EDGE_MARGIN = {
+        TOP: 200,    // Extensive top margin to prevent cutoff
+        BOTTOM: 80,  
+        LEFT: 80,
+        RIGHT: 80
+    };
+    
+    // Node class with strict edge avoidance
     class Node {
         constructor() {
             this.size = 2 + Math.random() * 3;
             
-            // Start nodes across the full width of the container
-            const fullWidth = canvas.width + 40;
-            this.x = -20 + (Math.random() * fullWidth);
-            this.y = Math.random() * canvas.height;
+            // Start nodes with extra padding at the top
+            const topPadding = 120; // Extra padding at top to prevent clipping
+            const sidePadding = 40;  // Standard padding for sides
             
-            // Much slower speed for more elegant flow
-            this.speed = 0.01 + Math.random() * 0.04; // Reduced speed by ~75%
-            this.processing = Math.random() > 0.7;
+            // Generate positions to ensure better top coverage
+            this.x = -sidePadding + (Math.random() * (canvas.width + sidePadding*2));
+            
+            // Apply stronger bias to keep nodes away from the very top
+            const topBias = Math.random();
+            if (topBias < 0.7) {
+                // 70% of nodes positioned well below the top edge
+                this.y = topPadding + (Math.random() * (canvas.height - topPadding));
+            } else {
+                // 30% of nodes can be in top region but still with padding
+                this.y = topPadding/2 + (Math.random() * topPadding);
+            }
+            
+            this.speed = 0.01 + Math.random() * 0.04;
+            this.processing = Math.random() > 0.6; // Increase processing nodes
             this.connections = [];
-            this.alpha = 0.2 + Math.random() * 0.3;
             
-            // Subtle pulse effect instead of data packets
+            // Increased base opacity for better visibility
+            this.alpha = 0.35 + Math.random() * 0.4;
+            
             this.pulsePhase = Math.random() * Math.PI * 2;
-            this.pulseSpeed = 0.005 + Math.random() * 0.01; // Even slower pulse
+            this.pulseSpeed = 0.005 + Math.random() * 0.01;
         }
         
         update(timeElapsed) {
             // Minimal acceleration for more consistent movement
-            const speedFactor = Math.min(1 + (timeElapsed / 30000), 2); // Slower acceleration
+            const speedFactor = Math.min(1 + (timeElapsed / 30000), 2);
             
             // Move right
             this.x += this.speed * speedFactor;
             
-            // Loop back when off screen
-            if (this.x > canvas.width + 20) {
-                this.x = -20;
-                this.y = Math.random() * canvas.height;
+            // Loop back when off screen - ensure coverage of bottom left
+            if (this.x > canvas.width + 40) {
+                this.x = -40;
+                // Distribute across full height when recycling
+                this.y = -40 + (Math.random() * (canvas.height + 80));
             }
             
             // Subtle pulse effect for processing nodes
@@ -94,20 +119,27 @@ document.addEventListener('DOMContentLoaded', function() {
     function createNodes() {
         nodes = [];
         
-        // Create more nodes for denser connections and more solid shapes
-        const count = Math.max(50, Math.floor((canvas.width * canvas.height) / 2500)); // Increased node count
+        // Create even more nodes for better coverage
+        const count = Math.max(100, Math.floor((canvas.width * canvas.height) / 2000));
         
-        // Create evenly distributed nodes across the container width
+        // Create nodes with better distribution
         for (let i = 0; i < count; i++) {
             const node = new Node();
             
-            // Explicitly position nodes from left to right edge
-            node.x = -20 + ((canvas.width + 40) * (i / count));
+            // Ensure we have good initial distribution including bottom left
+            if (i < count * 0.3) {
+                // 30% of nodes in bottom half
+                node.y = canvas.height/2 + (Math.random() * canvas.height/2);
+                // 15% of those focused on bottom left
+                if (i < count * 0.15) {
+                    node.x = Math.random() * (canvas.width/2);
+                }
+            }
             
             nodes.push(node);
         }
         
-        // Create connections - each node connects to more others for solid shapes
+        // Create connections with better visual density
         nodes.forEach(node => {
             node.connections = [];
             
@@ -124,12 +156,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     return distA - distB;
                 });
             
-            // Connect to 5-9 closest nodes for denser, more solid-looking shapes
-            const connectionCount = 5 + Math.floor(Math.random() * 5);
+            // Connect to 6-10 closest nodes for denser connections
+            const connectionCount = 6 + Math.floor(Math.random() * 5);
             node.connections = otherNodes.slice(0, connectionCount);
         });
-        
-        console.log(`Created ${nodes.length} nodes spanning the full window width ${window.innerWidth}px`);
     }
     
     // Animation loop
@@ -180,20 +210,9 @@ document.addEventListener('DOMContentLoaded', function() {
         requestAnimationFrame(animate);
     }
     
-    // Make sure we have the canvas element properly set up
+    // Set up the canvas with proper positioning
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
-    
-    // Keep canvas within its parent container
-    if (canvas) {
-        canvas.style.opacity = '0.3';
-        canvas.style.position = 'absolute'; // Not fixed - stay in the parent
-        canvas.style.top = '0';
-        canvas.style.left = '0';
-        canvas.style.width = '100%'; // 100% of parent width
-        canvas.style.height = '100%';
-        canvas.style.pointerEvents = 'none';
-    }
     
     // Initialize and start
     createNodes();
