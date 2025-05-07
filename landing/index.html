@@ -242,13 +242,14 @@
     </header>
 
     <!-- Enhanced Scarcity & Urgency Section with Network Flow Animation -->
-    <section class="relative max-w-4xl mx-auto px-6 py-16 overflow-hidden">
-        <!-- Network flow animation background -->
-        <div class="absolute inset-0 z-0 overflow-hidden">
-            <canvas id="networkFlowCanvas" class="w-full h-full opacity-25"></canvas>
+    <section class="relative w-full py-16 overflow-hidden">
+        <!-- Network flow animation background - adjusted for full width -->
+        <div class="absolute inset-0 z-0 w-full" style="overflow: hidden;">
+            <canvas id="networkFlowCanvas" class="opacity-30"></canvas>
         </div>
         
-        <div class="relative z-10">
+        <!-- Container for content - still centered -->
+        <div class="relative z-10 max-w-4xl mx-auto px-6">
             <h2 class="text-3xl font-bold text-center mb-10">Private Sale Progress</h2>
             
             <div class="bg-dark/80 backdrop-blur-sm p-8 rounded-2xl border border-zinc-800 shadow-xl">
@@ -303,7 +304,7 @@
                             </div>
                             <div class="bg-dark relative overflow-hidden p-4 rounded-lg border border-zinc-800 text-center">
                                 <div class="relative">
-                                    <div class="text-3xl font-mono font-bold text-brand" id="seconds">49</div>
+                                    <div class="text-3xl font-mono font-bold text-white" id="seconds">49</div>
                                     <div class="text-zinc-500 text-xs mt-1">SECONDS</div>
                                 </div>
                             </div>
