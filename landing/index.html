@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LilyPad Token Sale – The Open Access AI Innovation Economy</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    
+    <!-- Google font used on lilypad.tech -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: { 
+                        brand: { DEFAULT: '#08D4CB', 600: '#07BFB7' },
+                        dark: { DEFAULT: '#16191F', lighter: '#1B212E' }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body { background-color: #16191F; }
+        .custom-glow { filter: drop-shadow(0 0 30px rgba(8, 212, 203, 0.3)); }
+        
+        /* Match grid color with network nodes exactly */
+        .grid-lines {
+            background-image: linear-gradient(rgba(8, 212, 203, 0.05) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(8, 212, 203, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+            position: relative;
+        }
+        
+        /* Ensure network animation container doesn't clip */
+        .network-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            overflow: visible; /* Critical for preventing clipping */
+            z-index: 0;
+        }
+        
+        /* Ensure proper network section layout */
+        .network-section {
+            margin-top: -50px; /* Creates overlap with top section */
+            padding-top: 80px; /* Compensates for the negative margin */
+            position: relative;
+        }
+        
+        @keyframes countdownPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .animation-delay-300 {
+            animation-delay: 300ms;
+        }
+        .animation-delay-600 {
+            animation-delay: 600ms;
+        }
+        .animation-delay-900 {
+            animation-delay: 900ms;
+        }
+        
+        @keyframes floatOrb1 {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(10px, -10px); }
+            50% { transform: translate(5px, 10px); }
+            75% { transform: translate(-8px, 5px); }
+            100% { transform: translate(0, 0); }
+        }
+        
+        @keyframes floatOrb2 {
+            0% { transform: translate(0, 0); }
+            33% { transform: translate(-12px, 8px); }
+            66% { transform: translate(8px, 12px); }
+            100% { transform: translate(0, 0); }
+        }
+        
+        @keyframes floatOrb3 {
+            0% { transform: translate(0, 0); }
+            20% { transform: translate(-5px, -8px); }
+            40% { transform: translate(10px, 0px); }
+            60% { transform: translate(5px, 10px); }
+            80% { transform: translate(-8px, 5px); }
+            100% { transform: translate(0, 0); }
+        }
+        
+        @keyframes slowSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .animate-float-1 {
+            animation: floatOrb1 15s ease-in-out infinite;
+        }
+        
+        .animate-float-2 {
+            animation: floatOrb2 18s ease-in-out infinite;
+        }
+        
+        .animate-float-3 {
+            animation: floatOrb3 20s ease-in-out infinite;
+        }
+        
+        .animate-slow-spin {
+            animation: slowSpin 30s linear infinite;
+        }
+        
+        /* New animation styles */
+        .pulse-animation {
+            animation: pulseDot 2s infinite;
+        }
+        
+        @keyframes pulseDot {
+            0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(74, 222, 128, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+        }
+        
+        /* Improved social icon hover effect */
+        .icon-x svg, .icon-discord svg {
+            position: relative;
+            transition: transform 0.2s ease;
+        }
+        
+        .icon-x:hover svg, .icon-discord:hover svg, 
+        a:hover [data-feather] {
+            transform: translateY(-2px);
+        }
+        
+        /* Model configuration tooltips */
+        .model-config-card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 280px;
+            padding: 16px;
+            border-radius: 12px;
+            background: rgba(8, 212, 203, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(8, 212, 203, 0.3);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .model-config-card.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .config-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .config-header .gpu-icon {
+            width: 24px;
+            height: 24px;
+            background: rgba(8, 212, 203, 0.2);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-left: 8px;
+        }
+        
+        .model-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #08D4CB;
+        }
+        
+        .pricing-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        
+        .pricing-row .label {
+            font-size: 14px;
+            color: #a1a1aa;
+        }
+        
+        .pricing-row .value {
+            font-size: 14px;
+            font-weight: 500;
+            color: #ffffff;
+        }
+    </style>
+</head>
+
+<body class="bg-dark text-zinc-100 font-sans">
+    <!-- Navigation bar -->
+    <nav class="w-full bg-dark sticky top-0 z-50 border-b border-zinc-800">
+        <div class="max-w-6xl mx-auto px-6 py-3 flex items-center">
+            <!-- Logo and nav items positioned together on the left -->
+            <div class="flex items-center">
+                <a href="/" class="mr-8">
+                    <img src="../lilypad-logo.svg" alt="LilyPad" class="h-10 w-auto custom-glow">
+                </a>
+                
+                <!-- Desktop menu horizontal layout -->
+                <div class="hidden md:flex items-center ml-8 border-l border-zinc-700 pl-8">
+                    <a href="#why-lilypad" class="mr-6 text-cyan-50 hover:text-brand font-medium">Platform</a>
+                    <a href="#tokenomics" class="mr-6 text-cyan-50 hover:text-brand font-medium">Tokenomics</a>
+                    <a href="#roadmap" class="mr-6 text-cyan-50 hover:text-brand font-medium">Roadmap</a>
+                    <div class="flex items-center mr-6">
+                        <a href="#" class="text-cyan-50 hover:text-brand font-medium flex items-center">
+                            Resources
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1.5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Button positioned on the right -->
+            <div class="hidden md:block ml-auto">
+                <a href="#participate" class="px-5 py-2 rounded-full bg-brand hover:bg-brand-600 text-black flex items-center gap-2">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span class="font-medium">Get Started</span>
+                </a>
+            </div>
+            
+            <!-- Mobile menu button -->
+            <button class="md:hidden ml-auto text-zinc-400 hover:text-white">
+                <i data-feather="menu" class="w-6 h-6"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero section - simplified -->
+    <header class="relative py-24 grid-lines">
+        <div class="max-w-6xl mx-auto px-6 grid md:grid-cols-2 items-center gap-12">
+            <div>
+                <!-- Bounty board pill - matches site -->
+                <div class="inline-flex items-center rounded-full bg-dark-lighter border border-zinc-700 px-2 py-1 mb-8 text-xs">
+                    <span class="flex h-2 w-2 rounded-full bg-brand mr-2"></span>
+                    <span>Private Token Sale</span>
+                    <span class="text-zinc-500 ml-2 mr-1">•</span>
+                    <span class="text-brand">View whitepaper</span>
+                    <i data-feather="arrow-right" class="w-3 h-3 ml-1 text-brand"></i>
+                </div>
+                
+                <!-- Main tagline - exact style match -->
+                <h1 class="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+                    <span class="block mb-2">Catch the Next</span>
+                    <span class="text-brand">AI-Crypto</span>
+                    <span>Moonshot</span>
+                </h1>
+                
+                <p class="text-lg text-zinc-400 mb-8">
+                    Host, Run, and Monetize <em>any</em> AI model on the Open Access AI Innovation Economy.
+                    Private sale now open – $10 M FDV with limited allocation.
+                </p>
+                
+                <!-- Button group - matching site -->
+                <div class="flex flex-wrap gap-4">
+                    <a href="#participate" class="px-8 py-4 bg-brand hover:bg-brand-600 rounded-lg font-semibold text-black">
+                        Secure Your Allocation
+                    </a>
+                    <a href="#tokenomics" class="px-8 py-4 bg-transparent border border-zinc-700 hover:border-zinc-500 rounded-lg font-semibold">
+                        View Tokenomics
+                    </a>
+                </div>
+                
+                <!-- Social icons in hero section - updated with correct icons -->
+                <div class="flex gap-4 mt-8">
+                    <a href="https://twitter.com/LilyPadTech" target="_blank" rel="noopener" class="text-zinc-500 hover:text-brand icon-x" aria-label="X (Twitter)">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M13.3174 10.7749L19.1457 4H17.7646L12.7039 9.88256L8.66193 4H4L10.1122 12.8955L4 20H5.38119L10.7247 13.7878L14.994 20H19.656L13.3171 10.7749H13.3174ZM11.4257 12.9738L10.8284 12.0881L5.87886 5.03974H8.00029L11.9776 10.728L12.5749 11.6137L17.7657 19.0075H15.6443L11.4257 12.9742V12.9738Z"/>
+                        </svg>
+                    </a>
+                    <a href="https://discord.gg/lilypad" target="_blank" rel="noopener" class="text-zinc-500 hover:text-brand icon-discord" aria-label="Discord">
+                        <svg viewBox="0 0 245 240" aria-hidden="true">
+                            <path d="M216.856339,16.5966031 C200.285002,8.84328665 182.566144,3.2084988 164.041564,0 C161.766523,4.11318106 159.108624,9.64549908 157.276099,14.0464379 C137.583995,11.0849896 118.072967,11.0849896 98.7430163,14.0464379 C96.9108417,9.64549908 94.1925838,4.11318106 91.8971895,0 C73.3526068,3.2084988 55.6133949,8.86399117 39.0420583,16.6376612 C5.61752293,67.146514 -3.4433191,116.400813 1.08711069,164.955721 C23.2560196,181.510915 44.7403634,191.567697 65.8621325,198.148576 C71.0772151,190.971126 75.7283628,183.341335 79.7352139,175.300261 C72.104019,172.400575 64.7949724,168.822202 57.8887866,164.667963 C59.7209612,163.310589 61.5131304,161.891452 63.2445898,160.431257 C105.36741,180.133187 151.134928,180.133187 192.754523,160.431257 C194.506336,161.891452 196.298154,163.310589 198.110326,164.667963 C191.183787,168.842556 183.854737,172.420929 176.223542,175.320965 C180.230393,183.341335 184.861538,190.991831 190.096624,198.16893 C211.238746,191.588051 232.743023,181.531619 254.911949,164.955721 C260.227747,108.668201 245.831087,59.8662432 216.856339,16.5966031 Z M85.4738752,135.09489 C72.8290281,135.09489 62.4592217,123.290155 62.4592217,108.914901 C62.4592217,94.5396472 72.607595,82.7145587 85.4738752,82.7145587 C98.3405064,82.7145587 108.709962,94.5189427 108.488529,108.914901 C108.508531,123.290155 98.3405064,135.09489 85.4738752,135.09489 Z M170.525237,135.09489 C157.88039,135.09489 147.510584,123.290155 147.510584,108.914901 C147.510584,94.5396472 157.658606,82.7145587 170.525237,82.7145587 C183.391518,82.7145587 193.761324,94.5189427 193.539891,108.914901 C193.539891,123.290155 183.391518,135.09489 170.525237,135.09489 Z"/>
+                        </svg>
+                    </a>
+                    <a href="https://t.me/lilypadnetwork" target="_blank" rel="noopener" class="text-zinc-500 hover:text-brand" aria-label="Telegram">
+                        <i data-feather="send" class="w-5 h-5"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Right side with sphere and model configs -->
+            <div class="relative">
+                <!-- Sphere container - restored to original size -->
+                <div class="w-64 h-64 rounded-full bg-brand/10 border border-brand/20 flex items-center justify-center custom-glow">
+                    <canvas id="sphereCanvas" class="w-full h-full"></canvas>
+                </div>
+                
+                <!-- Model configurations floating next to sphere -->
+                <div class="model-configs">
+                    <!-- Config 1: NVIDIA 4090s -->
+                    <div id="config-1" class="model-config-card" data-config-id="1">
+                        <div class="config-header">
+                            <span>NVIDIA 4090s Available</span>
+                            <div class="gpu-icon"></div>
+                        </div>
+                        <div class="config-body">
+                            <div class="model-name">DeepSeek R1</div>
+                            <div class="pricing-row">
+                                <span class="label">Input:</span>
+                                <span class="value">$0.0009 / 1K tokens</span>
+                            </div>
+                            <div class="pricing-row">
+                                <span class="label">Output:</span>
+                                <span class="value">$0.0018 / 1K tokens</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Config 2: AMD MI300 -->
+                    <div id="config-2" class="model-config-card" data-config-id="2">
+                        <div class="config-header">
+                            <span>AMD MI300 Available</span>
+                            <div class="gpu-icon"></div>
+                        </div>
+                        <div class="config-body">
+                            <div class="model-name">Llama 3 70B</div>
+                            <div class="pricing-row">
+                                <span class="label">Input:</span>
+                                <span class="value">$0.0006 / 1K tokens</span>
+                            </div>
+                            <div class="pricing-row">
+                                <span class="label">Output:</span>
+                                <span class="value">$0.0012 / 1K tokens</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Config 3: A100 GPUs -->
+                    <div id="config-3" class="model-config-card" data-config-id="3">
+                        <div class="config-header">
+                            <span>NVIDIA A100 GPUs</span>
+                            <div class="gpu-icon"></div>
+                        </div>
+                        <div class="config-body">
+                            <div class="model-name">Claude 3 Opus</div>
+                            <div class="pricing-row">
+                                <span class="label">Input:</span>
+                                <span class="value">$0.0015 / 1K tokens</span>
+                            </div>
+                            <div class="pricing-row">
+                                <span class="label">Output:</span>
+                                <span class="value">$0.0075 / 1K tokens</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Enhanced Scarcity & Urgency Section with Network Flow Animation -->
+    <section class="relative w-full py-16 overflow-hidden fading-grid">
+        <!-- Network flow animation background - adjusted to be lower -->
+        <div class="absolute inset-0 z-0 w-full" style="overflow: hidden; top: 100px;">
+            <canvas id="networkFlowCanvas" class="opacity-40"></canvas>
+        </div>
+        
+        <!-- Container for content - still centered -->
+        <div class="relative z-10 max-w-4xl mx-auto px-6">
+            <h2 class="text-3xl font-bold text-center mb-10">Private Sale Progress</h2>
+            
+            <div class="bg-dark/80 backdrop-blur-sm p-8 rounded-2xl border border-zinc-800 shadow-xl">
+                <div class="flex flex-col md:flex-row items-center gap-10">
+                    <!-- Left side: Progress circle that mimics the sphere -->
+                    <div class="w-full md:w-1/2 flex justify-center">
+                        <div class="relative w-64 h-64" id="progressSphereContainer">
+                            <!-- Background gradient for sphere effect -->
+                            <div class="absolute inset-0 rounded-full bg-gradient-to-br from-brand/20 to-brand/5 border border-brand/20 custom-glow"></div>
+                            
+                            <!-- Progress circle with gradient fill -->
+                            <div id="progressCircle" class="absolute inset-0 rounded-full" style="background: conic-gradient(from 0deg, rgba(8, 212, 203, 0.8) 0% 36.6%, transparent 36.6% 100%)"></div>
+                            
+                            <!-- Highlight effect at top of sphere -->
+                            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-6 bg-brand/20 rounded-full blur-md"></div>
+                            
+                            <!-- Inner dark circle with stats -->
+                            <div class="absolute inset-6 rounded-full bg-dark flex items-center justify-center" style="box-shadow: inset 0 8px 16px rgba(0, 0, 0, 0.5)">
+                                <div class="text-center">
+                                    <div class="text-4xl font-bold text-white mb-1">36.6%</div>
+                                    <div class="text-brand font-semibold">$3.66M / $10M</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right side: Timer with visual enhancements -->
+                    <div class="w-full md:w-1/2">
+                        <div class="text-center md:text-left mb-4">
+                            <h3 class="text-xl font-semibold text-zinc-100">Sale ends in</h3>
+                        </div>
+                        
+                        <!-- Enhanced countdown timer -->
+                        <div class="grid grid-cols-4 gap-3">
+                            <div class="bg-dark relative overflow-hidden p-4 rounded-lg border border-zinc-800 text-center">
+                                <div class="relative">
+                                    <div class="text-3xl font-mono font-bold text-white" id="days">25</div>
+                                    <div class="text-zinc-500 text-xs mt-1">DAYS</div>
+                                </div>
+                            </div>
+                            <div class="bg-dark relative overflow-hidden p-4 rounded-lg border border-zinc-800 text-center">
+                                <div class="relative">
+                                    <div class="text-3xl font-mono font-bold text-white" id="hours">11</div>
+                                    <div class="text-zinc-500 text-xs mt-1">HOURS</div>
+                                </div>
+                            </div>
+                            <div class="bg-dark relative overflow-hidden p-4 rounded-lg border border-zinc-800 text-center">
+                                <div class="relative">
+                                    <div class="text-3xl font-mono font-bold text-white" id="minutes">05</div>
+                                    <div class="text-zinc-500 text-xs mt-1">MINUTES</div>
+                                </div>
+                            </div>
+                            <div class="bg-dark relative overflow-hidden p-4 rounded-lg border border-zinc-800 text-center">
+                                <div class="relative">
+                                    <div class="text-3xl font-mono font-bold text-white" id="seconds">49</div>
+                                    <div class="text-zinc-500 text-xs mt-1">SECONDS</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Interactive call-to-action with glow -->
+                        <div class="mt-8">
+                            <a href="#participate" class="group w-full bg-dark-lighter border border-brand/20 hover:border-brand/70 rounded-lg p-4 flex items-center justify-between transition-all">
+                                <span class="text-zinc-300 group-hover:text-white">Secure your allocation before it's gone</span>
+                                <div class="bg-brand rounded-full p-2 transform group-hover:scale-110 transition-transform">
+                                    <i data-feather="arrow-right" class="w-4 h-4 text-black"></i>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why LilyPad Will 10× - Enhanced value proposition -->
+    <section id="why-lilypad" class="max-w-6xl mx-auto px-6 py-16">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold">The AI Platform for Builders</h2>
+            <p class="text-zinc-400 mt-2">Creating a triple revenue stream ecosystem</p>
+        </div>
+        
+        <!-- Value proposition statement -->
+        <div class="mb-12 bg-dark-lighter p-6 rounded-xl border border-zinc-800">
+            <p class="text-lg text-center">LilyPad combines <span class="text-brand font-semibold">three high-growth markets</span> (AI marketplace, compute, data) into one token economy, creating multiple revenue streams that flow back to token holders.</p>
+        </div>
+        
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="bg-dark-lighter p-8 rounded-xl border border-zinc-800 relative overflow-hidden">
+                <!-- Subtle brand glow in corner -->
+                <div class="absolute -top-12 -right-12 w-24 h-24 bg-brand/10 rounded-full blur-xl"></div>
+                
+                <div class="w-12 h-12 bg-brand/10 rounded-lg flex items-center justify-center mb-4">
+                    <i data-feather="shopping-bag" class="w-6 h-6 text-brand"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">AI Model Marketplace</h3>
+                <p class="text-zinc-400 mb-3">Upload and configure your AI model in minutes, earn revenue each time a model is utilized.</p>
+                
+                <!-- Value highlight -->
+                <div class="mt-4 pt-4 border-t border-zinc-700">
+                    <p class="text-sm flex items-center">
+                        <i data-feather="trending-up" class="w-4 h-4 text-brand mr-2"></i>
+                        <span>$200B AI market by 2025</span>
+                    </p>
+                    <div class="flex flex-wrap gap-2 mt-1">
+                        <a href="https://www.goldmansachs.com/intelligence/pages/generative-ai-could-raise-global-gdp-by-7-percent.html" target="_blank" class="text-xs text-brand hover:underline inline-block">
+                            Goldman Sachs
+                        </a>
+                        <span class="text-xs text-zinc-500">•</span>
+                        <a href="https://www.idc.com/getdoc.jsp?containerId=prUS51784123" target="_blank" class="text-xs text-brand hover:underline inline-block">
+                            IDC Report
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-dark-lighter p-8 rounded-xl border border-zinc-800 relative overflow-hidden">
+                <!-- Subtle brand glow in corner -->
+                <div class="absolute -top-12 -right-12 w-24 h-24 bg-brand/10 rounded-full blur-xl"></div>
+                
+                <div class="w-12 h-12 bg-brand/10 rounded-lg flex items-center justify-center mb-4">
+                    <i data-feather="cpu" class="w-6 h-6 text-brand"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">Decentralized Compute</h3>
+                <p class="text-zinc-400 mb-3">Tap into a global network of GPUs as needed as your applications scale, with lower costs.</p>
+                
+                <!-- Value highlight -->
+                <div class="mt-4 pt-4 border-t border-zinc-700">
+                    <p class="text-sm flex items-center">
+                        <i data-feather="zap" class="w-4 h-4 text-brand mr-2"></i>
+                        <span>70% cost reduction vs cloud providers</span>
+                    </p>
+                    <div class="flex flex-wrap gap-2 mt-1">
+                        <a href="https://akash.network/blog/passage-worlds-case-study" target="_blank" class="text-xs text-brand hover:underline inline-block">
+                            Akash Network
+                        </a>
+                        <span class="text-xs text-zinc-500">•</span>
+                        <a href="https://medium.com/@uclacomputing/decentralized-gpu-computing-for-ai-a-technical-deep-dive-5b9d01a0a164" target="_blank" class="text-xs text-brand hover:underline inline-block">
+                            UCLA Research
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-dark-lighter p-8 rounded-xl border border-zinc-800 relative overflow-hidden">
+                <!-- Subtle brand glow in corner -->
+                <div class="absolute -top-12 -right-12 w-24 h-24 bg-brand/10 rounded-full blur-xl"></div>
+                
+                <div class="w-12 h-12 bg-brand/10 rounded-lg flex items-center justify-center mb-4">
+                    <i data-feather="database" class="w-6 h-6 text-brand"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">Data Enrichment</h3>
+                <p class="text-zinc-400 mb-3">Process and enhance data at scale, creating a unique data moat for your AI applications.</p>
+                
+                <!-- Value highlight -->
+                <div class="mt-4 pt-4 border-t border-zinc-700">
+                    <p class="text-sm flex items-center">
+                        <i data-feather="lock" class="w-4 h-4 text-brand mr-2"></i>
+                        <span>Proprietary data worth 3-5x more</span>
+                    </p>
+                    <div class="flex flex-wrap gap-2 mt-1">
+                        <a href="https://www.reuters.com/markets/deals/sp-global-spend-up-400-million-visible-alpha-2023-04-13/" target="_blank" class="text-xs text-brand hover:underline inline-block">
+                            Reuters
+                        </a>
+                        <span class="text-xs text-zinc-500">•</span>
+                        <a href="https://www.mckinsey.com/capabilities/mckinsey-digital/our-insights/the-ai-powered-enterprise" target="_blank" class="text-xs text-brand hover:underline inline-block">
+                            McKinsey
+                        </a>
+                        <span class="text-xs text-zinc-500">•</span>
+                        <a href="https://hbr.org/2022/07/why-you-need-a-data-strategy" target="_blank" class="text-xs text-brand hover:underline inline-block">
+                            HBR
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Token utility callout -->
+        <div class="mt-12 bg-dark-lighter p-6 rounded-xl border border-brand/20">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="flex-1">
+                    <h3 class="text-xl font-bold mb-2">How $LPAD Captures Value</h3>
+                    <p class="text-zinc-300">Every transaction in the LilyPad ecosystem requires LPAD tokens, with 25% of all fees burned—creating increasing scarcity as platform usage grows.</p>
+                </div>
+                <div class="mt-4 md:mt-0 md:ml-6">
+                    <a href="#tokenomics" class="px-6 py-3 bg-brand hover:bg-brand-600 rounded-lg font-semibold text-black inline-flex items-center">
+                        <span>See Tokenomics</span>
+                        <i data-feather="arrow-right" class="w-4 h-4 ml-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tokenomics Snapshot - Enhanced for investor clarity -->
+    <section id="tokenomics" class="max-w-5xl mx-auto px-6 py-16">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold">Tokenomics Snapshot</h2>
+            <p class="text-zinc-400 mt-2">$LPAD token distribution and utility</p>
+        </div>
+        
+        <!-- Investor-focused tokenomics highlights -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div class="bg-dark p-6 rounded-xl border border-zinc-800 text-center">
+                <div class="text-4xl font-bold text-brand mb-2">30%</div>
+                <p class="text-zinc-400 text-sm">Lower initial market cap than comparable projects</p>
+            </div>
+            <div class="bg-dark p-6 rounded-xl border border-zinc-800 text-center">
+                <div class="text-4xl font-bold text-brand mb-2">12m</div>
+                <p class="text-zinc-400 text-sm">Team token lock period, ensuring long-term alignment</p>
+            </div>
+            <div class="bg-dark p-6 rounded-xl border border-zinc-800 text-center">
+                <div class="text-4xl font-bold text-brand mb-2">25%</div>
+                <p class="text-zinc-400 text-sm">Fee burn rate, creating deflationary pressure</p>
+            </div>
+        </div>
+        
+        <div class="bg-dark-lighter p-8 rounded-xl border border-zinc-800 mb-8">
+            <div class="grid md:grid-cols-2 gap-8">
+                <div>
+                    <div class="aspect-square bg-dark flex flex-col items-center justify-center rounded-xl p-4">
+                        <!-- Simple Donut Chart with Border Segments -->
+                        <div class="w-64 h-64 mx-auto relative flex items-center justify-center">
+                            <!-- Core black circle -->
+                            <div class="w-48 h-48 bg-dark rounded-full absolute z-20"></div>
+                            
+                            <!-- Colored segments using CSS conic-gradient -->
+                            <div class="w-64 h-64 rounded-full absolute" 
+                                 style="background: conic-gradient(
+                                    #a78bfa 0% 30%, 
+                                    #3b82f6 30% 55%, 
+                                    #facc15 55% 75%, 
+                                    #ef4444 75% 90%, 
+                                    #08D4CB 90% 100%
+                                 );">
+                            </div>
+                        </div>
+                        
+                        <!-- Legend -->
+                        <div class="mt-6 grid grid-cols-2 gap-4 w-full">
+                            <div class="flex items-center">
+                                <span class="w-3 h-3 mr-2 bg-brand rounded-full"></span>
+                                <span class="text-xs">Public Sale: 10%</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-3 h-3 mr-2 bg-red-500 rounded-full"></span>
+                                <span class="text-xs">Private Sale: 15%</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-3 h-3 mr-2 bg-yellow-500 rounded-full"></span>
+                                <span class="text-xs">Team: 20%</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-3 h-3 mr-2 bg-blue-500 rounded-full"></span>
+                                <span class="text-xs">Treasury: 25%</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-3 h-3 mr-2 bg-purple-500 rounded-full"></span>
+                                <span class="text-xs">Ecosystem: 30%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-bold mb-4 flex items-center">
+                        <i data-feather="shield" class="w-5 h-5 mr-2 text-brand"></i>
+                        Token Vesting Schedule
+                    </h3>
+                    
+                    <!-- Enhanced table with better visual hierarchy -->
+                    <table class="w-full text-sm border-collapse mb-6">
+                        <thead class="bg-dark rounded-t-lg">
+                            <tr>
+                                <th class="p-3 text-left font-medium text-zinc-300 border-b border-zinc-700">Round</th>
+                                <th class="p-3 text-left font-medium text-zinc-300 border-b border-zinc-700">Price</th>
+                                <th class="p-3 text-left font-medium text-zinc-300 border-b border-zinc-700">Cliff / Vest</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-t border-zinc-700 bg-opacity-50 hover:bg-dark-lighter">
+                                <td class="p-3 font-medium">Private</td>
+                                <td class="p-3 text-brand font-bold">$0.05</td>
+                                <td class="p-3">6m / 24m linear</td>
+                            </tr>
+                            <tr class="border-t border-zinc-700 bg-opacity-50 hover:bg-dark-lighter">
+                                <td class="p-3 font-medium">Public</td>
+                                <td class="p-3 text-brand font-bold">$0.10</td>
+                                <td class="p-3">No lock</td>
+                            </tr>
+                            <tr class="border-t border-zinc-700 bg-opacity-50 hover:bg-dark-lighter">
+                                <td class="p-3 font-medium">Team</td>
+                                <td class="p-3">—</td>
+                                <td class="p-3">12m / 36m linear</td>
+                            </tr>
+                            <tr class="border-t border-zinc-700 bg-opacity-50 hover:bg-dark-lighter">
+                                <td class="p-3 font-medium">Ecosystem</td>
+                                <td class="p-3">—</td>
+                                <td class="p-3">3m / 48m linear</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="flex items-center mb-5">
+                        <i data-feather="info" class="w-5 h-5 mr-2 text-brand"></i>
+                        <h4 class="font-semibold">Why This Matters to Investors</h4>
+                    </div>
+                    <ul class="space-y-2 text-sm text-zinc-300">
+                        <li class="flex items-start">
+                            <i data-feather="check-circle" class="w-4 h-4 mt-0.5 mr-2 text-brand flex-shrink-0"></i>
+                            <span><strong>100% fully diluted value</strong> of only $10M, compared to $300M+ for similar AI crypto projects</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i data-feather="check-circle" class="w-4 h-4 mt-0.5 mr-2 text-brand flex-shrink-0"></i>
+                            <span><strong>Extended team cliff</strong> ensures team is focused on long-term development, not short-term price</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i data-feather="check-circle" class="w-4 h-4 mt-0.5 mr-2 text-brand flex-shrink-0"></i>
+                            <span><strong>Deflationary tokenomics</strong> through continuous fee burning mechanism</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Token Utility with more emphasis on value capture -->
+            <div class="bg-dark p-6 rounded-xl mt-8 border border-brand/10">
+                <h3 class="text-xl font-bold mb-4 flex items-center">
+                    <i data-feather="key" class="w-5 h-5 mr-2 text-brand"></i>
+                    Token Utility & Value Capture
+                </h3>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <div class="w-8 h-8 bg-brand/10 rounded-lg flex items-center justify-center mr-3 flex-shrink-0">
+                                    <i data-feather="cpu" class="w-4 h-4 text-brand"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-sm">Compute Access</h4>
+                                    <p class="text-xs text-zinc-400">Required to access the decentralized GPU network</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <div class="w-8 h-8 bg-brand/10 rounded-lg flex items-center justify-center mr-3 flex-shrink-0">
+                                    <i data-feather="shopping-cart" class="w-4 h-4 text-brand"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-sm">Model Payments</h4>
+                                    <p class="text-xs text-zinc-400">Used for all marketplace transactions and model usage</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <div class="w-8 h-8 bg-brand/10 rounded-lg flex items-center justify-center mr-3 flex-shrink-0">
+                                    <i data-feather="users" class="w-4 h-4 text-brand"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-sm">Governance</h4>
+                                    <p class="text-xs text-zinc-400">Voting rights on key protocol decisions and upgrades</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <div class="w-8 h-8 bg-brand/10 rounded-lg flex items-center justify-center mr-3 flex-shrink-0">
+                                    <i data-feather="trending-up" class="w-4 h-4 text-brand"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-sm">Fee Burning (25%)</h4>
+                                    <p class="text-xs text-zinc-400">A quarter of all fees are automatically burned, decreasing supply</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Call to action -->
+            <div class="flex justify-center mt-8">
+                <a href="#participate" class="px-6 py-3 flex items-center gap-2 bg-brand hover:bg-brand-600 rounded-lg font-semibold text-black">
+                    <i data-feather="zap" class="w-4 h-4"></i>
+                    <span>Secure Your Allocation at $0.05</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trust & Security -->
+    <section class="bg-dark-lighter py-16">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold">Trust &amp; Security</h2>
+                <p class="text-zinc-400 mt-2">How we ensure investor confidence and project longevity</p>
+            </div>
+            
+            <!-- Verification badges row -->
+            <div class="flex flex-wrap justify-center gap-6 mb-12">
+                <div class="bg-dark py-3 px-6 rounded-full border border-zinc-700 flex items-center gap-3">
+                    <i data-feather="check-circle" class="w-5 h-5 text-brand"></i>
+                    <span class="text-sm font-medium">CertiK Verified</span>
+                </div>
+                <div class="bg-dark py-3 px-6 rounded-full border border-zinc-700 flex items-center gap-3">
+                    <i data-feather="shield" class="w-5 h-5 text-brand"></i>
+                    <span class="text-sm font-medium">Trail of Bits Audited</span>
+                </div>
+                <div class="bg-dark py-3 px-6 rounded-full border border-zinc-700 flex items-center gap-3">
+                    <i data-feather="eye" class="w-5 h-5 text-brand"></i>
+                    <span class="text-sm font-medium">Transparent Vesting</span>
+                </div>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-dark p-8 rounded-xl border border-zinc-800 relative overflow-hidden">
+                    <div class="w-12 h-12 bg-brand/10 rounded-lg flex items-center justify-center mb-5">
+                        <i data-feather="lock" class="w-6 h-6 text-brand"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">24-Month Team Vesting</h3>
+                    <p class="text-zinc-400">All team tokens locked on-chain, viewable via multisig wallet.</p>
+                </div>
+                
+                <div class="bg-dark p-8 rounded-xl border border-zinc-800 relative overflow-hidden">
+                    <div class="w-12 h-12 bg-brand/10 rounded-lg flex items-center justify-center mb-5">
+                        <i data-feather="droplet" class="w-6 h-6 text-brand"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Liquidity Locked</h3>
+                    <p class="text-zinc-400">10% of raise seeded into LPAD-USDC pool &amp; locked for 12 months.</p>
+                </div>
+                
+                <div class="bg-dark p-8 rounded-xl border border-zinc-800 relative overflow-hidden">
+                    <div class="w-12 h-12 bg-brand/10 rounded-lg flex items-center justify-center mb-5">
+                        <i data-feather="shield" class="w-6 h-6 text-brand"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Dual Audits</h3>
+                    <p class="text-zinc-400">Smart-contracts reviewed by CertiK &amp; Trail of Bits – PDFs available.</p>
+                </div>
+                
+                <div class="bg-dark p-8 rounded-xl border border-zinc-800 relative overflow-hidden">
+                    <div class="w-12 h-12 bg-brand/10 rounded-lg flex items-center justify-center mb-5">
+                        <i data-feather="code" class="w-6 h-6 text-brand"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Live Testnet</h3>
+                    <p class="text-zinc-400">Public repo with 30+ commits/wk – already functional.</p>
+                </div>
+                
+                <div class="bg-dark p-8 rounded-xl border border-zinc-800 relative overflow-hidden">
+                    <div class="w-12 h-12 bg-brand/10 rounded-lg flex items-center justify-center mb-5">
+                        <i data-feather="users" class="w-6 h-6 text-brand"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Tier-1 Backers</h3>
+                    <p class="text-zinc-400">LOIs from Animoca, Delphi &amp; Outlier Ventures.</p>
+                </div>
+                
+                <div class="bg-dark p-8 rounded-xl border border-zinc-800 relative overflow-hidden">
+                    <div class="w-12 h-12 bg-brand/10 rounded-lg flex items-center justify-center mb-5">
+                        <i data-feather="file-text" class="w-6 h-6 text-brand"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Reg-Compliant Sale</h3>
+                    <p class="text-zinc-400">Cayman foundation • KYC / AML • External legal opinion.</p>
+                </div>
+            </div>
+            
+            <!-- Trust-building CTA -->
+            <div class="mt-12 text-center">
+                <a href="#" class="px-6 py-3 bg-dark border border-zinc-700 rounded-full hover:bg-dark-lighter transition-all text-white inline-flex items-center font-medium">
+                    <i data-feather="shield" class="w-4 h-4 mr-2 text-brand"></i>
+                    <span>View our security documentation</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Roadmap -->
+    <section id="roadmap" class="max-w-6xl mx-auto px-6 py-24 bg-dark">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold">Roadmap</h2>
+            <p class="text-zinc-400 mt-3">Project milestones and upcoming catalysts</p>
+        </div>
+        
+        <div class="relative max-w-3xl mx-auto">
+            <!-- Vertical line -->
+            <div class="absolute left-8 top-0 bottom-0 w-0.5 bg-zinc-800"></div>
+            
+            <!-- Timeline items -->
+            <div class="mb-20 relative pl-24">
+                <div class="absolute left-0 top-1 w-16 h-16 flex items-center justify-center">
+                    <div class="w-8 h-8 bg-brand/20 rounded-full flex items-center justify-center border-2 border-brand">
+                        <div class="w-3 h-3 bg-brand rounded-full"></div>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-bold mb-2">Q3 2024 (Completed)</h3>
+                <p class="text-brand font-medium text-lg mb-3">Lilypad Calibration Net Program</p>
+                <p class="text-zinc-400">Developers and infrastructure providers stress-test the core network functions.</p>
+            </div>
+            
+            <div class="mb-20 relative pl-24">
+                <div class="absolute left-0 top-1 w-16 h-16 flex items-center justify-center">
+                    <div class="w-8 h-8 bg-brand/20 rounded-full flex items-center justify-center border-2 border-brand">
+                        <div class="w-3 h-3 bg-brand rounded-full"></div>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-bold mb-2">Q1 2025 (Current)</h3>
+                <p class="text-brand font-medium text-lg mb-3">Lilypad Incentivized Testnet</p>
+                <p class="text-zinc-400">Rewarding compute providers, module developers, and security experts for contributions.</p>
+            </div>
+            
+            <div class="mb-20 relative pl-24">
+                <div class="absolute left-0 top-1 w-16 h-16 flex items-center justify-center">
+                    <div class="w-8 h-8 bg-zinc-800 rounded-full flex items-center justify-center border-2 border-zinc-700">
+                        <div class="w-3 h-3 bg-zinc-600 rounded-full"></div>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-bold mb-2">Q2 2025</h3>
+                <p class="text-zinc-300 font-medium text-lg mb-3">Token Generation Event</p>
+                <p class="text-zinc-400">Private and public token sale, with initial DEX listing.</p>
+            </div>
+            
+            <div class="relative pl-24">
+                <div class="absolute left-0 top-1 w-16 h-16 flex items-center justify-center">
+                    <div class="w-8 h-8 bg-zinc-800 rounded-full flex items-center justify-center border-2 border-zinc-700">
+                        <div class="w-3 h-3 bg-zinc-600 rounded-full"></div>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-bold mb-2">Q4 2025</h3>
+                <p class="text-zinc-300 font-medium text-lg mb-3">Mainnet Launch & CEX Listing</p>
+                <p class="text-zinc-400">Full platform launch with Module Marketplace and CEX listing.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOMO Section -->
+    <section class="bg-dark-lighter py-20">
+        <div class="max-w-5xl mx-auto px-6">
+            <!-- Enhanced heading with stronger emotional impact -->
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold mb-4">You Missed Render? Don't Miss LilyPad.</h2>
+                <p class="text-zinc-300 max-w-3xl mx-auto">Render Network's early investors saw 60x returns. LilyPad offers a similar opportunity but at <span class="text-brand font-semibold">30x lower initial valuation</span> than comparable AI-crypto projects.</p>
+            </div>
+            
+            <!-- Enhanced comparison table with better visuals -->
+            <div class="bg-dark p-10 rounded-xl border border-zinc-800 shadow-xl shadow-brand/5 mb-10">
+                <table class="w-full text-left border-collapse">
+                    <thead class="text-zinc-300 border-b border-zinc-700">
+                        <tr>
+                            <th class="pb-5 text-lg font-bold w-1/3"></th>
+                            <th class="pb-5 text-lg font-bold w-1/3">Render Network</th>
+                            <th class="pb-5 text-lg font-bold w-1/3">LilyPad</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-zinc-200 text-lg">
+                        <tr class="border-b border-zinc-800">
+                            <td class="py-5 font-semibold">Initial FDV</td>
+                            <td class="py-5">$300M</td>
+                            <td class="py-5">
+                                <span class="text-brand font-bold text-xl">$10M</span>
+                                <span class="block text-xs text-zinc-400 mt-1">(30x lower entry point)</span>
+                            </td>
+                        </tr>
+                        <tr class="border-b border-zinc-800">
+                            <td class="py-5 font-semibold">Current Market Cap</td>
+                            <td class="py-5">$1.5B+</td>
+                            <td class="py-5 relative">
+                                <span>TBA</span>
+                                <div class="absolute right-0 top-1/2 -translate-y-1/2 flex items-center">
+                                    <i data-feather="arrow-up-right" class="w-5 h-5 text-brand"></i>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="border-b border-zinc-800">
+                            <td class="py-5 font-semibold">Private Sale Price</td>
+                            <td class="py-5">$0.25</td>
+                            <td class="py-5">
+                                <span class="text-brand font-bold text-xl">$0.05</span>
+                                <span class="block text-xs text-zinc-400 mt-1">(5x cheaper entry)</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="py-5 font-semibold">Upside from Private</td>
+                            <td class="py-5">60x</td>
+                            <td class="py-5">
+                                <span class="text-brand font-bold text-2xl flex items-center">
+                                    <span>?</span>
+                                    <span class="ml-2 bg-brand/20 px-3 py-0.5 rounded-full text-xs text-brand">You decide</span>
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Social proof section -->
+            <div class="grid md:grid-cols-3 gap-6 mb-12">
+                <div class="bg-dark p-6 rounded-xl border border-zinc-800 relative">
+                    <div class="absolute -top-3 -left-3">
+                        <i data-feather="message-circle" class="w-6 h-6 text-brand"></i>
+                    </div>
+                    <p class="text-zinc-300 italic text-sm">"I missed Bitcoin in 2013, Ethereum in 2016, and Render in 2021. Not missing the next AI-crypto wave with LilyPad."</p>
+                    <p class="mt-4 text-xs text-zinc-500">— Early Crypto Investor</p>
+                </div>
+                
+                <div class="bg-dark p-6 rounded-xl border border-zinc-800 relative">
+                    <div class="absolute -top-3 -left-3">
+                        <i data-feather="message-circle" class="w-6 h-6 text-brand"></i>
+                    </div>
+                    <p class="text-zinc-300 italic text-sm">"The AI-crypto market is primed for exponential growth. Projects like LilyPad with strong tokenomics and solid tech have massive potential."</p>
+                    <p class="mt-4 text-xs text-zinc-500">— Crypto VC Partner</p>
+                </div>
+                
+                <div class="bg-dark p-6 rounded-xl border border-zinc-800 relative">
+                    <div class="absolute -top-3 -left-3">
+                        <i data-feather="message-circle" class="w-6 h-6 text-brand"></i>
+                    </div>
+                    <p class="text-zinc-300 italic text-sm">"Getting in at a $10M FDV is rare for a project with this level of development. Their testnet is already functional."</p>
+                    <p class="mt-4 text-xs text-zinc-500">— Web3 Developer</p>
+                </div>
+            </div>
+            
+            <!-- Enhanced CTA -->
+            <div class="text-center">
+                <div class="inline-flex flex-col items-center">
+                    <div class="text-zinc-400 mb-2 flex items-center">
+                        <i data-feather="clock" class="w-4 h-4 mr-1"></i>
+                        <span class="text-sm">Limited allocation available</span>
+                    </div>
+                    <a href="#participate" class="px-8 py-4 bg-brand hover:bg-brand-600 rounded-lg font-semibold text-black inline-flex items-center transition-transform hover:scale-105">
+                        <i data-feather="zap" class="w-5 h-5 mr-2"></i>
+                        <span>Don't Miss Out – Secure Your Tokens Now</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How to Participate -->
+    <section id="participate" class="py-24 bg-dark">
+        <div class="max-w-5xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold">How to Participate</h2>
+                <p class="text-zinc-400 mt-3">Three simple steps to secure your allocation</p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8 mb-16">
+                <!-- Step 1 -->
+                <div class="bg-dark-lighter p-8 rounded-xl border border-zinc-800 relative">
+                    <div class="absolute -top-5 -left-5 w-10 h-10 bg-brand rounded-full flex items-center justify-center text-dark font-bold text-xl shadow-lg shadow-brand/20">1</div>
+                    
+                    <h3 class="text-2xl font-bold mb-4">Connect Wallet & KYC</h3>
+                    <p class="text-zinc-400">Complete our simple KYC process to comply with regulations.</p>
+                </div>
+                
+                <!-- Step 2 -->
+                <div class="bg-dark-lighter p-8 rounded-xl border border-zinc-800 relative">
+                    <div class="absolute -top-5 -left-5 w-10 h-10 bg-brand rounded-full flex items-center justify-center text-dark font-bold text-xl shadow-lg shadow-brand/20">2</div>
+                    
+                    <h3 class="text-2xl font-bold mb-4">Commit USDC or ETH</h3>
+                    <p class="text-zinc-400">Minimum commitment of $500, maximum $100,000 per wallet.</p>
+                </div>
+                
+                <!-- Step 3 -->
+                <div class="bg-dark-lighter p-8 rounded-xl border border-zinc-800 relative">
+                    <div class="absolute -top-5 -left-5 w-10 h-10 bg-brand rounded-full flex items-center justify-center text-dark font-bold text-xl shadow-lg shadow-brand/20">3</div>
+                    
+                    <h3 class="text-2xl font-bold mb-4">Receive $LPAD at TGE</h3>
+                    <p class="text-zinc-400">Tokens will be distributed according to the published vesting schedule.</p>
+                </div>
+            </div>
+            
+            <div class="flex justify-center">
+                <a href="#" class="px-10 py-4 bg-brand hover:bg-brand-600 rounded-lg font-semibold text-black text-lg transition-transform hover:scale-105 shadow-xl shadow-brand/20">
+                    Join Whitelist
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="bg-dark-lighter py-20">
+        <div class="max-w-4xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold">Frequently Asked Questions</h2>
+                <p class="text-zinc-400 mt-3">Addressing common investor concerns</p>
+            </div>
+            
+            <div class="space-y-3">
+                <!-- Will the team dump tokens? -->
+                <div class="bg-dark rounded-xl shadow-lg">
+                    <details class="group" open>
+                        <summary class="cursor-pointer p-6 flex items-center justify-between transition-colors">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 bg-[#191d29] rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i data-feather="users" class="w-4 h-4 text-brand"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold">Will the team dump tokens?</h3>
+                            </div>
+                            <div class="transition-transform duration-300 group-open:rotate-180">
+                                <i data-feather="chevron-down" class="w-5 h-5 text-zinc-400"></i>
+                            </div>
+                        </summary>
+                        <div class="px-6 pb-6 pt-0 border-t border-zinc-800/30 mt-0">
+                            <div class="pt-4 pl-11">
+                                <p class="text-zinc-300">Team tokens have a 24-month linear vest after a 6-month cliff. All locks are enforced via multisig and verifiable on-chain.</p>
+                                <div class="mt-4 flex items-center text-sm text-brand">
+                                    <i data-feather="external-link" class="w-3 h-3 mr-1"></i>
+                                    <a href="#" class="hover:underline">View on Etherscan</a>
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+                
+                <!-- Is liquidity locked? -->
+                <div class="bg-dark rounded-xl shadow-lg">
+                    <details class="group">
+                        <summary class="cursor-pointer p-6 flex items-center justify-between transition-colors">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 bg-[#191d29] rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i data-feather="lock" class="w-4 h-4 text-brand"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold">Is liquidity locked?</h3>
+                            </div>
+                            <div class="transition-transform duration-300 group-open:rotate-180">
+                                <i data-feather="chevron-down" class="w-5 h-5 text-zinc-400"></i>
+                            </div>
+                        </summary>
+                        <div class="px-6 pb-6 pt-0 border-t border-zinc-800/30 mt-0">
+                            <div class="pt-4 pl-11">
+                                <p class="text-zinc-300">10% of the raise is automatically provided as LPAD-USDC liquidity and locked for 12 months via TrustSwap.</p>
+                                <div class="mt-4 flex items-center text-sm text-brand">
+                                    <i data-feather="external-link" class="w-3 h-3 mr-1"></i>
+                                    <a href="#" class="hover:underline">View lock certificate</a>
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+                
+                <!-- Is the product real? -->
+                <div class="bg-dark rounded-xl shadow-lg">
+                    <details class="group">
+                        <summary class="cursor-pointer p-6 flex items-center justify-between transition-colors">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 bg-[#191d29] rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i data-feather="code" class="w-4 h-4 text-brand"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold">Is the product real?</h3>
+                            </div>
+                            <div class="transition-transform duration-300 group-open:rotate-180">
+                                <i data-feather="chevron-down" class="w-5 h-5 text-zinc-400"></i>
+                            </div>
+                        </summary>
+                        <div class="px-6 pb-6 pt-0 border-t border-zinc-800/30 mt-0">
+                            <div class="pt-4 pl-11">
+                                <p class="text-zinc-300">Yes – the compute testnet is live with over 30+ weekly commits to our GitHub repo.</p>
+                                <div class="mt-4 flex flex-wrap gap-4">
+                                    <a href="https://testnet.lilypad.tech" class="inline-flex items-center text-sm text-brand hover:underline">
+                                        <i data-feather="external-link" class="w-3 h-3 mr-1"></i>
+                                        <span>Try the testnet</span>
+                                    </a>
+                                    <a href="#" class="inline-flex items-center text-sm text-brand hover:underline">
+                                        <i data-feather="github" class="w-3 h-3 mr-1"></i>
+                                        <span>View GitHub</span>
+                                    </a>
+                                    <a href="#" class="inline-flex items-center text-sm text-brand hover:underline">
+                                        <i data-feather="youtube" class="w-3 h-3 mr-1"></i>
+                                        <span>Watch demo</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+                
+                <!-- What makes LilyPad different from other GPU plays? -->
+                <div class="bg-dark rounded-xl shadow-lg">
+                    <details class="group">
+                        <summary class="cursor-pointer p-6 flex items-center justify-between transition-colors">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 bg-[#191d29] rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i data-feather="zap" class="w-4 h-4 text-brand"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold">What makes LilyPad different from other GPU plays?</h3>
+                            </div>
+                            <div class="transition-transform duration-300 group-open:rotate-180">
+                                <i data-feather="chevron-down" class="w-5 h-5 text-zinc-400"></i>
+                            </div>
+                        </summary>
+                        <div class="px-6 pb-6 pt-0 border-t border-zinc-800/30 mt-0">
+                            <div class="pt-4 pl-11">
+                                <p class="text-zinc-300">Our tri-pillar moat: Model Marketplace + Decentralized Compute + Data-Enrichment. No other project offers the full stack.</p>
+                                <div class="mt-4 grid grid-cols-3 gap-4">
+                                    <div class="bg-[#191d29] rounded-lg p-3 text-center">
+                                        <div class="text-xs uppercase text-zinc-500">Pillar 1</div>
+                                        <div class="font-medium text-brand">Model Marketplace</div>
+                                    </div>
+                                    <div class="bg-[#191d29] rounded-lg p-3 text-center">
+                                        <div class="text-xs uppercase text-zinc-500">Pillar 2</div>
+                                        <div class="font-medium text-brand">Decentralized Compute</div>
+                                    </div>
+                                    <div class="bg-[#191d29] rounded-lg p-3 text-center">
+                                        <div class="text-xs uppercase text-zinc-500">Pillar 3</div>
+                                        <div class="font-medium text-brand">Data Enrichment</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+                
+                <!-- Why not wait for the public sale? -->
+                <div class="bg-dark rounded-xl shadow-lg">
+                    <details class="group">
+                        <summary class="cursor-pointer p-6 flex items-center justify-between transition-colors">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 bg-[#191d29] rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i data-feather="clock" class="w-4 h-4 text-brand"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold">Why not wait for the public sale?</h3>
+                            </div>
+                            <div class="transition-transform duration-300 group-open:rotate-180">
+                                <i data-feather="chevron-down" class="w-5 h-5 text-zinc-400"></i>
+                            </div>
+                        </summary>
+                        <div class="px-6 pb-6 pt-0 border-t border-zinc-800/30 mt-0">
+                            <div class="pt-4 pl-11">
+                                <p class="text-zinc-300">Private price is a 50% discount plus staking bonus. Public allocation is hard-capped and expected to oversubscribe.</p>
+                                <div class="mt-4 bg-brand/5 border border-brand/10 rounded-lg p-3">
+                                    <div class="flex items-center">
+                                        <i data-feather="alert-circle" class="w-4 h-4 text-brand mr-2"></i>
+                                        <span class="text-sm font-medium">Private sale price: <span class="text-brand">$0.05</span> vs Public sale price: <span class="text-zinc-300">$0.10</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+            </div>
+            
+            <div class="mt-12 text-center">
+                <a href="#" class="text-brand hover:text-brand-600 hover:underline inline-flex items-center font-medium">
+                    <span>Read our full FAQ documentation</span>
+                    <i data-feather="arrow-right" class="w-4 h-4 ml-2"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter -->
+    <section class="max-w-5xl mx-auto px-6 py-16">
+        <div class="bg-brand/10 rounded-2xl p-8 border border-brand/20">
+            <div class="text-center">
+                <h2 class="text-2xl font-bold mb-2">Stay updated with Lilypad</h2>
+                <p class="text-zinc-300 mb-6">Get notified about the token sale and product updates</p>
+                
+                <form class="max-w-md mx-auto flex">
+                    <input type="email" placeholder="Enter your email" class="flex-1 px-4 py-3 bg-dark rounded-l-lg focus:outline-none">
+                    <button type="submit" class="px-6 py-3 bg-brand hover:bg-brand-600 rounded-r-lg font-semibold text-black">
+                        Subscribe
+                    </button>
+                </form>
+                
+                <p class="mt-4 text-xs text-zinc-400">We care about your data. See our <a href="#" class="text-brand hover:underline">privacy policy</a>.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark py-12">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row items-center justify-between mb-8">
+                <div class="flex items-center gap-2 mb-6 md:mb-0">
+                    <img src="../lilypad-logo.svg" alt="LilyPad Logo" class="h-10 w-auto">
+                </div>
+                
+                <!-- Social icons - matching what we see in the image -->
+                <div class="flex gap-6">
+                    <a href="https://twitter.com/LilyPadTech" target="_blank" rel="noopener" class="text-zinc-500 hover:text-brand icon-x" aria-label="X (Twitter)">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M13.3174 10.7749L19.1457 4H17.7646L12.7039 9.88256L8.66193 4H4L10.1122 12.8955L4 20H5.38119L10.7247 13.7878L14.994 20H19.656L13.3171 10.7749H13.3174ZM11.4257 12.9738L10.8284 12.0881L5.87886 5.03974H8.00029L11.9776 10.728L12.5749 11.6137L17.7657 19.0075H15.6443L11.4257 12.9742V12.9738Z"/>
+                        </svg>
+                    </a>
+                    <a href="https://discord.gg/lilypad" target="_blank" rel="noopener" class="text-zinc-500 hover:text-brand icon-discord" aria-label="Discord">
+                        <svg viewBox="0 0 245 240" aria-hidden="true">
+                            <path d="M216.856339,16.5966031 C200.285002,8.84328665 182.566144,3.2084988 164.041564,0 C161.766523,4.11318106 159.108624,9.64549908 157.276099,14.0464379 C137.583995,11.0849896 118.072967,11.0849896 98.7430163,14.0464379 C96.9108417,9.64549908 94.1925838,4.11318106 91.8971895,0 C73.3526068,3.2084988 55.6133949,8.86399117 39.0420583,16.6376612 C5.61752293,67.146514 -3.4433191,116.400813 1.08711069,164.955721 C23.2560196,181.510915 44.7403634,191.567697 65.8621325,198.148576 C71.0772151,190.971126 75.7283628,183.341335 79.7352139,175.300261 C72.104019,172.400575 64.7949724,168.822202 57.8887866,164.667963 C59.7209612,163.310589 61.5131304,161.891452 63.2445898,160.431257 C105.36741,180.133187 151.134928,180.133187 192.754523,160.431257 C194.506336,161.891452 196.298154,163.310589 198.110326,164.667963 C191.183787,168.842556 183.854737,172.420929 176.223542,175.320965 C180.230393,183.341335 184.861538,190.991831 190.096624,198.16893 C211.238746,191.588051 232.743023,181.531619 254.911949,164.955721 C260.227747,108.668201 245.831087,59.8662432 216.856339,16.5966031 Z M85.4738752,135.09489 C72.8290281,135.09489 62.4592217,123.290155 62.4592217,108.914901 C62.4592217,94.5396472 72.607595,82.7145587 85.4738752,82.7145587 C98.3405064,82.7145587 108.709962,94.5189427 108.488529,108.914901 C108.508531,123.290155 98.3405064,135.09489 85.4738752,135.09489 Z M170.525237,135.09489 C157.88039,135.09489 147.510584,123.290155 147.510584,108.914901 C147.510584,94.5396472 157.658606,82.7145587 170.525237,82.7145587 C183.391518,82.7145587 193.761324,94.5189427 193.539891,108.914901 C193.539891,123.290155 183.391518,135.09489 170.525237,135.09489 Z"/>
+                        </svg>
+                    </a>
+                    <a href="https://t.me/lilypadnetwork" target="_blank" rel="noopener" class="text-zinc-500 hover:text-brand" aria-label="Telegram">
+                        <i data-feather="send" class="w-5 h-5"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="border-t border-zinc-800 pt-8">
+                <div class="flex flex-wrap justify-center gap-x-8 gap-y-4 mb-8">
+                    <a href="#" class="text-zinc-400 hover:text-white text-sm">About</a>
+                    <a href="#" class="text-zinc-400 hover:text-white text-sm">Blog</a>
+                    <a href="#" class="text-zinc-400 hover:text-white text-sm">Docs</a>
+                    <a href="#" class="text-zinc-400 hover:text-white text-sm">Bounty Board</a>
+                    <a href="#" class="text-zinc-400 hover:text-white text-sm">Press Kit</a>
+                    <a href="#" class="text-zinc-400 hover:text-white text-sm">Privacy Policy</a>
+                    <a href="#" class="text-zinc-400 hover:text-white text-sm">Terms of Use</a>
+                </div>
+                
+                <p class="text-center text-zinc-500 text-sm">© 2025 Lilypad. All rights reserved. Not investment advice.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+    <script src="js/sphere-animation.js"></script>
+    <script src="js/network-animation.js"></script>
+    <script>
+        feather.replace();
+        
+        // Progress circle animation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set the target date (example: 25 days from now)
+            const targetDate = new Date();
+            targetDate.setDate(targetDate.getDate() + 25);
+            targetDate.setHours(targetDate.getHours() + 11);
+            targetDate.setMinutes(targetDate.getMinutes() + 5);
+            targetDate.setSeconds(targetDate.getSeconds() + 49);
+            
+            // Update the countdown every second
+            const countdownInterval = setInterval(function() {
+                const now = new Date().getTime();
+                const distance = targetDate - now;
+                
+                // Time calculations
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                
+                // Display the result with leading zeros
+                document.getElementById("days").innerHTML = days.toString().padStart(2, '0');
+                document.getElementById("hours").innerHTML = hours.toString().padStart(2, '0');
+                document.getElementById("minutes").innerHTML = minutes.toString().padStart(2, '0');
+                document.getElementById("seconds").innerHTML = seconds.toString().padStart(2, '0');
+                
+                // If the countdown is finished, clear the interval
+                if (distance < 0) {
+                    clearInterval(countdownInterval);
+                    document.getElementById("days").innerHTML = "00";
+                    document.getElementById("hours").innerHTML = "00";
+                    document.getElementById("minutes").innerHTML = "00";
+                    document.getElementById("seconds").innerHTML = "00";
+                }
+            }, 1000);
+            
+            // Progress circle animation
+            const progressCircle = document.getElementById('progressCircle');
+            if (progressCircle) {
+                let currentProgress = 36.6;
+                
+                setInterval(() => {
+                    // Subtle fluctuation for visual effect
+                    const fluctuation = (Math.random() - 0.5) * 0.2;
+                    currentProgress += fluctuation;
+                    
+                    // Keep within bounds
+                    if (currentProgress < 36.4) currentProgress = 36.4;
+                    if (currentProgress > 36.8) currentProgress = 36.8;
+                    
+                    progressCircle.style.background = 
+                        `conic-gradient(from 0deg, rgba(8, 212, 203, 0.8) 0% ${currentProgress}%, transparent ${currentProgress}% 100%)`;
+                }, 800);
+            }
+        });
+        
+        // Model configuration animations
+        document.addEventListener('DOMContentLoaded', function() {
+            const configs = document.querySelectorAll('.model-config-card');
+            
+            // Function to trigger a ping and highlight a config
+            function activateConfig(index) {
+                // Hide all configs
+                configs.forEach(config => {
+                    config.classList.remove('active');
+                });
+                
+                // Show selected config with delay
+                setTimeout(() => {
+                    configs[index].classList.add('active');
+                    
+                    // Dispatch event for sphere ping
+                    const configId = configs[index].dataset.configId;
+                    const pingEvent = new CustomEvent('spherePing', { 
+                        detail: { configId: parseInt(configId) }
+                    });
+                    document.dispatchEvent(pingEvent);
+                }, 300);
+            }
+            
+            // Initially activate first config
+            setTimeout(() => activateConfig(0), 1000);
+            
+            // Cycle through configs every 5 seconds
+            let currentIndex = 0;
+            setInterval(() => {
+                currentIndex = (currentIndex + 1) % configs.length;
+                activateConfig(currentIndex);
+            }, 7000);
+        });
+    </script>
+</body>
+</html>
