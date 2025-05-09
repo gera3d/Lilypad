@@ -1,0 +1,2070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LilyPad Dashboard – Manage Your AI Compute Resources</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    
+    <!-- Google font used on lilypad.tech -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: { 
+                        brand: { DEFAULT: '#08D4CB', 600: '#07BFB7' },
+                        dark: { DEFAULT: '#16191F', lighter: '#1B212E' }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body { background-color: #16191F; }
+        .custom-glow { filter: drop-shadow(0 0 30px rgba(8, 212, 203, 0.3)); }
+        
+        /* Match grid color with network nodes exactly */
+        .grid-lines {
+            background-image: linear-gradient(rgba(8, 212, 203, 0.05) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(8, 212, 203, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+            position: relative;
+        }
+        
+        /* Ensure network animation container doesn't clip */
+        .network-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            overflow: visible; /* Critical for preventing clipping */
+            z-index: 0;
+        }
+
+        /* Dashboard specific styling */
+        .dashboard-sidebar {
+            height: calc(100vh - 64px);
+            transition: width 0.3s ease;
+        }
+        
+        .dashboard-content {
+            transition: margin-left 0.3s ease;
+        }
+        
+        .sidebar-link {
+            border-left: 3px solid transparent;
+            transition: all 0.2s ease;
+        }
+        
+        .sidebar-link.active {
+            border-left: 3px solid #08D4CB;
+            background-color: rgba(8, 212, 203, 0.1);
+        }
+        
+        .sidebar-link:hover:not(.active) {
+            border-left: 3px solid rgba(8, 212, 203, 0.5);
+            background-color: rgba(8, 212, 203, 0.05);
+        }
+
+        /* Card hover effects */
+        .dashboard-card {
+            transition: all 0.3s ease;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px -5px rgba(8, 212, 203, 0.1);
+        }
+
+        /* Hardware status indicators */
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+        
+        .status-active {
+            background-color: #10B981;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+        }
+        
+        .status-inactive {
+            background-color: #EF4444;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+        
+        .status-pending {
+            background-color: #F59E0B;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+        }
+
+        /* Progress bar styling */
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background-color: rgba(8, 212, 203, 0.2);
+            overflow: hidden;
+        }
+        
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #08D4CB 0%, #06B6AE 100%);
+            transition: width 0.5s ease;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #16191F;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #1B212E;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(8, 212, 203, 0.5);
+        }
+
+        /* Hardware utilization gauge */
+        .gauge-container {
+            position: relative;
+            height: 120px;
+        }
+        
+        .gauge-semicircle {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            clip-path: polygon(0 100%, 100% 100%, 100% 0, 0 0);
+        }
+        
+        .gauge-background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: rgba(8, 212, 203, 0.1);
+            clip-path: polygon(0 100%, 100% 100%, 100% 0, 0 0);
+        }
+        
+        .gauge-fill {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(#08D4CB 0%, rgba(8, 212, 203, 0.5) 50%, transparent 50%);
+            clip-path: polygon(0 100%, 100% 100%, 100% 0, 0 0);
+            transform: rotate(-90deg);
+        }
+        
+        .gauge-center {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            background: #16191F;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Animation for new hardware card */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        /* Ping animation for hardware status */
+        @keyframes pingStatus {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(2.5); opacity: 0; }
+        }
+        
+        .ping-animation {
+            position: relative;
+        }
+        
+        .ping-animation::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(8, 212, 203, 0.8);
+            transform: translate(-50%, -50%);
+            animation: pingStatus 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            .dashboard-sidebar {
+                position: fixed;
+                width: 250px;
+                height: 100vh;
+                top: 0;
+                left: -250px;
+                transition: left 0.3s ease;
+                z-index: 50;
+            }
+            
+            .dashboard-sidebar.open {
+                left: 0;
+            }
+            
+            .dashboard-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+            
+            .sidebar-link {
+                padding: 0.75rem 1rem;
+            }
+            
+            .dashboard-card {
+                padding: 1.5rem;
+            }
+            
+            /* Hide elements not needed on mobile */
+            .hidden-mobile {
+                display: none !important;
+            }
+            
+            /* Show mobile-specific elements */
+            .block-mobile {
+                display: block !important;
+            }
+            
+            /* Adjust table for mobile */
+            .table-auto {
+                width: 100% !important;
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* Mobile form adjustments */
+            .form-input {
+                padding: 0.75rem;
+                font-size: 0.875rem;
+            }
+            
+            .form-label {
+                font-size: 0.875rem;
+            }
+            
+            .btn {
+                padding: 0.75rem 1rem;
+                font-size: 0.875rem;
+            }
+        }
+
+        /* Ensure modal is above sidebar overlay if both are active */
+        #api-key-modal {
+            z-index: 60; /* Higher than sidebar overlay (z-40) and sidebar (z-50) */
+        }
+
+        /* Placeholder for visual network activity */
+        .visual-activity-placeholder {
+            height: 200px; /* Adjust as needed */
+            background-color: rgba(8, 212, 203, 0.03); /* Subtle background */
+            border: 1px dashed rgba(8, 212, 203, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.75rem; /* Tailwind's rounded-xl */
+            margin-bottom: 1.5rem; /* Tailwind's mb-6 */
+        }
+    </style>
+</head>
+
+<body class="bg-dark text-zinc-100 font-sans">
+    <!-- Navigation bar -->
+    <nav class="w-full bg-dark sticky top-0 z-50 border-b border-zinc-800">
+        <div class="max-w-full mx-auto px-4 sm:px-6 py-3 flex items-center">
+            <!-- Logo and mobile menu button -->
+            <div class="flex items-center">
+                <button id="mobile-menu-button" class="p-2 mr-4 rounded-lg hover:bg-dark-lighter text-zinc-400 md:hidden">
+                    <i data-feather="menu" class="w-6 h-6"></i>
+                </button>
+                
+                <a href="/" class="mr-4 sm:mr-8">
+                    <img src="lilypad-logo.svg" alt="LilyPad" class="h-8 sm:h-10 w-auto custom-glow">
+                </a>
+                
+                <div class="hidden md:block ml-8 border-l border-zinc-700 pl-8">
+                    <h1 class="text-xl font-semibold text-brand">Dashboard</h1>
+                </div>
+                
+                <!-- Mobile page title - shown only on mobile -->
+                <h1 class="text-lg md:hidden font-semibold text-brand">Dashboard</h1>
+            </div>
+            
+            <!-- Right side items -->
+            <div class="ml-auto flex items-center gap-2 sm:gap-6">
+                <!-- Search - hidden on smallest screens -->
+                <div class="hidden md:flex items-center bg-dark-lighter rounded-lg px-3 py-1.5 border border-zinc-700">
+                    <i data-feather="search" class="w-4 h-4 text-zinc-400"></i>
+                    <input type="text" placeholder="Search..." class="bg-transparent border-none focus:outline-none text-sm px-3 py-1 w-48">
+                </div>
+                
+                <!-- Search icon on mobile -->
+                <button class="p-1.5 rounded-lg hover:bg-dark-lighter md:hidden">
+                    <i data-feather="search" class="w-5 h-5 text-zinc-400"></i>
+                </button>
+                
+                <!-- Notifications -->
+                <div class="relative">
+                    <button class="p-1.5 rounded-lg hover:bg-dark-lighter">
+                        <i data-feather="bell" class="w-5 h-5 text-zinc-400"></i>
+                        <span class="absolute top-0 right-0 w-2 h-2 bg-brand rounded-full"></span>
+                    </button>
+                </div>
+                
+                <!-- User menu -->
+                <div class="flex items-center">
+                    <button class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-dark-lighter">
+                        <div class="w-8 h-8 rounded-full bg-brand/20 flex items-center justify-center text-brand">
+                            <i data-feather="user" class="w-4 h-4"></i>
+                        </div>
+                        <span class="hidden md:block text-sm font-medium">0x8f...3a4b</span>
+                        <i data-feather="chevron-down" class="hidden md:block w-4 h-4 text-zinc-400"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Layout -->
+    <div class="flex relative">
+        <!-- Mobile sidebar overlay -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden md:hidden"></div>
+        
+        <!-- Sidebar -->
+        <div id="sidebar" class="dashboard-sidebar fixed md:static w-64 bg-dark border-r border-zinc-800 overflow-y-auto z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300">
+            <div class="px-4 py-6">
+                <div class="mb-8">
+                    <p class="text-xs uppercase tracking-wider text-zinc-500 font-medium px-3 mb-3">Main</p>
+                    <ul>
+                        <li>
+                            <a href="#overview" class="sidebar-link active px-3 py-2.5 flex items-center gap-3 rounded-lg">
+                                <i data-feather="grid" class="w-5 h-5 text-brand"></i>
+                                <span>Overview</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#onboard" class="sidebar-link px-3 py-2.5 flex items-center gap-3 rounded-lg">
+                                <i data-feather="cpu" class="w-5 h-5 text-zinc-400"></i>
+                                <span>Onboard Hardware</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#marketplace" class="sidebar-link px-3 py-2.5 flex items-center gap-3 rounded-lg">
+                                <i data-feather="shopping-bag" class="w-5 h-5 text-zinc-400"></i>
+                                <span>Model Marketplace</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#deployments" class="sidebar-link px-3 py-2.5 flex items-center gap-3 rounded-lg">
+                                <i data-feather="server" class="w-5 h-5 text-zinc-400"></i>
+                                <span>My Deployments</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#analytics" class="sidebar-link px-3 py-2.5 flex items-center gap-3 rounded-lg">
+                                <i data-feather="bar-chart-2" class="w-5 h-5 text-zinc-400"></i>
+                                <span>Analytics</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="mb-8">
+                    <p class="text-xs uppercase tracking-wider text-zinc-500 font-medium px-3 mb-3">Management</p>
+                    <ul>
+                        <li>
+                            <a href="#hardware" class="sidebar-link px-3 py-2.5 flex items-center gap-3 rounded-lg">
+                                <i data-feather="hard-drive" class="w-5 h-5 text-zinc-400"></i>
+                                <span>My Hardware</span>
+                                <span class="ml-auto bg-brand/10 text-brand text-xs px-2 py-0.5 rounded-full">5</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#compute" class="sidebar-link px-3 py-2.5 flex items-center gap-3 rounded-lg">
+                                <i data-feather="zap" class="w-5 h-5 text-zinc-400"></i>
+                                <span>Compute Usage</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#payouts" class="sidebar-link px-3 py-2.5 flex items-center gap-3 rounded-lg">
+                                <i data-feather="dollar-sign" class="w-5 h-5 text-zinc-400"></i>
+                                <span>Earnings & Payouts</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="mb-8">
+                    <p class="text-xs uppercase tracking-wider text-zinc-500 font-medium px-3 mb-3">Support</p>
+                    <ul>
+                        <li>
+                            <a href="#settings" class="sidebar-link px-3 py-2.5 flex items-center gap-3 rounded-lg">
+                                <i data-feather="settings" class="w-5 h-5 text-zinc-400"></i>
+                                <span>Settings</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#help" class="sidebar-link px-3 py-2.5 flex items-center gap-3 rounded-lg">
+                                <i data-feather="help-circle" class="w-5 h-5 text-zinc-400"></i>
+                                <span>Help & Support</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://docs.lilypad.tech" target="_blank" class="sidebar-link px-3 py-2.5 flex items-center gap-3 rounded-lg">
+                                <i data-feather="book-open" class="w-5 h-5 text-zinc-400"></i>
+                                <span>Documentation</span>
+                                <i data-feather="external-link" class="w-3 h-3 ml-auto text-zinc-500"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Staking Status -->
+                <div class="mt-auto p-4 bg-dark-lighter rounded-xl border border-zinc-800">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-full bg-brand/10 flex items-center justify-center">
+                            <i data-feather="lock" class="w-5 h-5 text-brand"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-medium text-white">LPAD Staked</h3>
+                            <p class="text-xs text-zinc-400">Provider Tier 2</p>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="flex justify-between mb-1">
+                            <span class="text-xs text-zinc-400">Current stake</span>
+                            <span class="text-xs text-brand font-medium">12,500 LPAD</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-bar-fill" style="width: 62.5%"></div>
+                        </div>
+                    </div>
+                    <div class="text-xs text-zinc-400 flex justify-between">
+                        <span>25% reward boost</span>
+                        <a href="#" class="text-brand hover:underline">Stake more</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <div class="dashboard-content w-full md:w-auto flex-1 p-4 sm:p-6 overflow-y-auto" style="height: calc(100vh - 64px);">
+            <!-- Overview section -->
+            <div id="overview-section" class="mb-6 sm:mb-8">
+                <!-- Page header -->
+                <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 sm:mb-8">
+                    <div>
+                        <h2 class="text-xl sm:text-2xl font-bold">Overview Dashboard</h2>
+                        <p class="text-zinc-400">Monitor your hardware and earnings</p>
+                    </div>
+                    <div class="flex items-center gap-2 sm:gap-3 mt-4 md:mt-0">
+                        <button class="px-3 sm:px-4 py-2 bg-dark-lighter hover:bg-zinc-800 border border-zinc-700 rounded-lg flex items-center gap-2">
+                            <i data-feather="refresh-cw" class="w-4 h-4"></i>
+                            <span class="hidden sm:inline">Refresh</span>
+                        </button>
+                        <button class="px-3 sm:px-4 py-2 bg-brand hover:bg-brand-600 text-black rounded-lg flex items-center gap-2">
+                            <i data-feather="cpu" class="w-4 h-4"></i>
+                            <span class="hidden sm:inline">Add Hardware</span>
+                            <span class="sm:hidden">Add</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Stats cards row - adjusted for mobile -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
+                    <!-- Total Earnings -->
+                    <div class="dashboard-card bg-dark-lighter p-6 rounded-xl border border-zinc-800">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-zinc-400 text-sm font-medium">Total Earnings</h3>
+                            <div class="bg-brand/10 p-2 rounded-lg">
+                                <i data-feather="dollar-sign" class="w-5 h-5 text-brand"></i>
+                            </div>
+                        </div>
+                        <p class="text-3xl font-bold mb-2">1,258.42 <span class="text-sm font-medium text-zinc-400">USDC</span></p>
+                        <div class="flex items-center">
+                            <span class="flex items-center text-emerald-400 text-sm">
+                                <i data-feather="arrow-up" class="w-3 h-3 mr-1"></i>
+                                12.3%
+                            </span>
+                            <span class="text-zinc-500 text-xs ml-2">vs last month</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Active Hardware -->
+                    <div class="dashboard-card bg-dark-lighter p-6 rounded-xl border border-zinc-800">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-zinc-400 text-sm font-medium">Active Hardware</h3>
+                            <div class="bg-brand/10 p-2 rounded-lg">
+                                <i data-feather="cpu" class="w-5 h-5 text-brand"></i>
+                            </div>
+                        </div>
+                        <p class="text-3xl font-bold mb-2">5 <span class="text-sm font-medium text-zinc-400">Devices</span></p>
+                        <div class="flex items-center">
+                            <span class="flex items-center text-emerald-400 text-sm">
+                                <i data-feather="arrow-up" class="w-3 h-3 mr-1"></i>
+                                2
+                            </span>
+                            <span class="text-zinc-500 text-xs ml-2">new this month</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Compute Usage -->
+                    <div class="dashboard-card bg-dark-lighter p-6 rounded-xl border border-zinc-800">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-zinc-400 text-sm font-medium">Compute Usage</h3>
+                            <div class="bg-brand/10 p-2 rounded-lg">
+                                <i data-feather="zap" class="w-5 h-5 text-brand"></i>
+                            </div>
+                        </div>
+                        <p class="text-3xl font-bold mb-2">87% <span class="text-sm font-medium text-zinc-400">Utilization</span></p>
+                        <div class="flex items-center">
+                            <span class="flex items-center text-emerald-400 text-sm">
+                                <i data-feather="arrow-up" class="w-3 h-3 mr-1"></i>
+                                15.2%
+                            </span>
+                            <span class="text-zinc-500 text-xs ml-2">vs last week</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Network Status -->
+                    <div class="dashboard-card bg-dark-lighter p-6 rounded-xl border border-zinc-800">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-zinc-400 text-sm font-medium">Network Status</h3>
+                            <div class="bg-brand/10 p-2 rounded-lg">
+                                <i data-feather="activity" class="w-5 h-5 text-brand"></i>
+                            </div>
+                        </div>
+                        <p class="text-3xl font-bold mb-2">Healthy <span class="status-indicator status-active ping-animation"></span></p>
+                        <div class="flex items-center">
+                            <span class="text-zinc-400 text-sm">
+                                99.9% uptime
+                            </span>
+                            <span class="text-zinc-500 text-xs ml-2">last 30 days</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Hardware Performance & Earnings - adjusted for stacking on mobile -->
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+                    <!-- Hardware Performance Chart -->
+                    <div class="dashboard-card bg-dark-lighter p-6 rounded-xl border border-zinc-800 xl:col-span-2">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-bold">Hardware Performance</h3>
+                            <div class="flex items-center gap-2">
+                                <button class="text-xs bg-dark px-3 py-1 rounded-full text-zinc-400 hover:bg-zinc-800">Day</button>
+                                <button class="text-xs bg-brand/20 text-brand px-3 py-1 rounded-full hover:bg-brand/30">Week</button>
+                                <button class="text-xs bg-dark px-3 py-1 rounded-full text-zinc-400 hover:bg-zinc-800">Month</button>
+                            </div>
+                        </div>
+                        <div class="h-64">
+                            <canvas id="performanceChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Earnings Breakdown -->
+                    <div class="dashboard-card bg-dark-lighter p-6 rounded-xl border border-zinc-800">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-bold">Earnings Breakdown</h3>
+                            <button class="text-zinc-400 hover:text-white">
+                                <i data-feather="more-vertical" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <div class="h-64">
+                            <canvas id="earningsChart"></canvas>
+                        </div>
+                        <div class="mt-4 grid grid-cols-3 gap-2 text-center">
+                            <div>
+                                <div class="w-3 h-3 bg-brand rounded-full mx-auto mb-1"></div>
+                                <p class="text-xs text-zinc-400">Compute</p>
+                            </div>
+                            <div>
+                                <div class="w-3 h-3 bg-purple-500 rounded-full mx-auto mb-1"></div>
+                                <p class="text-xs text-zinc-400">Models</p>
+                            </div>
+                            <div>
+                                <div class="w-3 h-3 bg-amber-500 rounded-full mx-auto mb-1"></div>
+                                <p class="text-xs text-zinc-400">Data</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Network Activity (Now part of Overview section) -->
+                <div id="network-activity-block" class="mb-6 sm:mb-8">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold">Network Activity</h3>
+                        <a href="#" class="text-brand text-sm hover:underline">View all</a>
+                    </div>
+
+                    <!-- Visual Activity Placeholder -->
+                    <div class="visual-activity-placeholder">
+                        <div class="text-center text-zinc-500">
+                            <i data-feather="activity" class="w-12 h-12 mx-auto mb-2"></i>
+                            <p>Live Network Visualisation Area</p>
+                            <p class="text-xs">(Coming Soon)</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-dark-lighter p-6 rounded-xl border border-zinc-800">
+                        <div class="space-y-4">
+                            <div class="flex items-start gap-4">
+                                <div class="w-10 h-10 bg-brand/10 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i data-feather="zap" class="w-5 h-5 text-brand"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <h4 class="font-medium">New model inference job started</h4>
+                                        <span class="text-xs text-zinc-500">10 mins ago</span>
+                                    </div>
+                                    <p class="text-sm text-zinc-400 mt-1">Stable Diffusion XL job started on Data Center #1 • <span class="text-brand">+2.75 USDC</span></p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start gap-4">
+                                <div class="w-10 h-10 bg-emerald-500/10 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i data-feather="check-circle" class="w-5 h-5 text-emerald-500"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <h4 class="font-medium">Hardware onboarding complete</h4>
+                                        <span class="text-xs text-zinc-500">2 hours ago</span>
+                                    </div>
+                                    <p class="text-sm text-zinc-400 mt-1">Home Server #1 is now active and accepting jobs</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start gap-4">
+                                <div class="w-10 h-10 bg-blue-500/10 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i data-feather="refresh-cw" class="w-5 h-5 text-blue-500"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <h4 class="font-medium">System update available</h4>
+                                        <span class="text-xs text-zinc-500">5 hours ago</span>
+                                    </div>
+                                    <p class="text-sm text-zinc-400 mt-1">LilyPad node software v1.3.2 is available • <a href="#" class="text-brand hover:underline">Update now</a></p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start gap-4">
+                                <div class="w-10 h-10 bg-purple-500/10 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i data-feather="dollar-sign" class="w-5 h-5 text-purple-500"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <h4 class="font-medium">Weekly payout completed</h4>
+                                        <span class="text-xs text-zinc-500">1 day ago</span>
+                                    </div>
+                                    <p class="text-sm text-zinc-400 mt-1">253.16 USDC transferred to your wallet • <a href="#" class="text-brand hover:underline">View transaction</a></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Hardware inventory section -->
+            <div id="hardware-section" class="mb-6 sm:mb-8 hidden">
+                <div class="flex justify-between items-center mb-4 sm:mb-6">
+                    <h3 class="text-lg sm:text-xl font-bold">Hardware Inventory</h3>
+                    <div class="flex items-center gap-2 sm:gap-3">
+                        <button class="text-zinc-400 hover:text-white text-sm flex items-center gap-1.5">
+                            <i data-feather="filter" class="w-4 h-4"></i>
+                            <span class="hidden sm:inline">Filter</span>
+                        </button>
+                        <button class="text-zinc-400 hover:text-white text-sm flex items-center gap-1.5">
+                            <i data-feather="list" class="w-4 h-4"></i>
+                            <span class="hidden sm:inline">Sort</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Mobile-friendly table wrapper -->
+                <div class="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+                    <div class="inline-block min-w-full align-middle">
+                        <table class="w-full text-left">
+                            <thead class="text-zinc-400 border-b border-zinc-800">
+                                <tr>
+                                    <th class="px-6 py-3 text-xs font-medium">Hardware Name</th>
+                                    <th class="px-6 py-3 text-xs font-medium">Specifications</th>
+                                    <th class="px-6 py-3 text-xs font-medium">Status</th>
+                                    <th class="px-6 py-3 text-xs font-medium">Utilization</th>
+                                    <th class="px-6 py-3 text-xs font-medium">Earnings (24h)</th>
+                                    <th class="px-6 py-3 text-xs font-medium">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-zinc-800">
+                                <tr class="hover:bg-zinc-900/50">
+                                    <td class="px-6 py-4 flex items-center gap-3">
+                                        <div class="w-8 h-8 bg-brand/10 rounded-lg flex items-center justify-center text-brand">
+                                            <i data-feather="cpu" class="w-4 h-4"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium">Home Server #1</p>
+                                            <p class="text-xs text-zinc-500">Node ID: lp-n340x...</p>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div>
+                                            <p class="text-sm">NVIDIA RTX 4090</p>
+                                            <p class="text-xs text-zinc-500">24GB VRAM, 16 Cores</p>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center">
+                                            <span class="status-indicator status-active"></span>
+                                            <span>Active</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-2">
+                                            <div class="flex-1 h-2 bg-zinc-800 rounded-full">
+                                                <div class="h-2 bg-brand rounded-full" style="width: 78%"></div>
+                                            </div>
+                                            <span class="text-xs font-medium">78%</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center">
+                                            <i data-feather="dollar-sign" class="w-4 h-4 text-brand mr-1"></i>
+                                            <span>35.42 USDC</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-2">
+                                            <button class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800">
+                                                <i data-feather="edit-2" class="w-4 h-4"></i>
+                                            </button>
+                                            <button class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800">
+                                                <i data-feather="bar-chart-2" class="w-4 h-4"></i>
+                                            </button>
+                                            <button class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800">
+                                                <i data-feather="power" class="w-4 h-4"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-zinc-900/50">
+                                    <td class="px-6 py-4 flex items-center gap-3">
+                                        <div class="w-8 h-8 bg-brand/10 rounded-lg flex items-center justify-center text-brand">
+                                            <i data-feather="cpu" class="w-4 h-4"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium">Data Center #1</p>
+                                            <p class="text-xs text-zinc-500">Node ID: lp-n521f...</p>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div>
+                                            <p class="text-sm">NVIDIA A100</p>
+                                            <p class="text-xs text-zinc-500">80GB VRAM, 128 Cores</p>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center">
+                                            <span class="status-indicator status-active"></span>
+                                            <span>Active</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-2">
+                                            <div class="flex-1 h-2 bg-zinc-800 rounded-full">
+                                                <div class="h-2 bg-brand rounded-full" style="width: 92%"></div>
+                                            </div>
+                                            <span class="text-xs font-medium">92%</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center">
+                                            <i data-feather="dollar-sign" class="w-4 h-4 text-brand mr-1"></i>
+                                            <span>124.81 USDC</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-2">
+                                            <button class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800">
+                                                <i data-feather="edit-2" class="w-4 h-4"></i>
+                                            </button>
+                                            <button class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800">
+                                                <i data-feather="bar-chart-2" class="w-4 h-4"></i>
+                                            </button>
+                                            <button class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800">
+                                                <i data-feather="power" class="w-4 h-4"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-zinc-900/50">
+                                    <td class="px-6 py-4 flex items-center gap-3">
+                                        <div class="w-8 h-8 bg-brand/10 rounded-lg flex items-center justify-center text-brand">
+                                            <i data-feather="cpu" class="w-4 h-4"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium">Gaming PC</p>
+                                            <p class="text-xs text-zinc-500">Node ID: lp-n762d...</p>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div>
+                                            <p class="text-sm">AMD Radeon RX 7900 XTX</p>
+                                            <p class="text-xs text-zinc-500">24GB VRAM, 96 CUs</p>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center">
+                                            <span class="status-indicator status-active"></span>
+                                            <span>Active</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-2">
+                                            <div class="flex-1 h-2 bg-zinc-800 rounded-full">
+                                                <div class="h-2 bg-brand rounded-full" style="width: 45%"></div>
+                                            </div>
+                                            <span class="text-xs font-medium">45%</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center">
+                                            <i data-feather="dollar-sign" class="w-4 h-4 text-brand mr-1"></i>
+                                            <span>18.25 USDC</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-2">
+                                            <button class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800">
+                                                <i data-feather="edit-2" class="w-4 h-4"></i>
+                                            </button>
+                                            <button class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800">
+                                                <i data-feather="bar-chart-2" class="w-4 h-4"></i>
+                                            </button>
+                                            <button class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800">
+                                                <i data-feather="power" class="w-4 h-4"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-zinc-900/50">
+                                    <td class="px-6 py-4 flex items-center gap-3">
+                                        <div class="w-8 h-8 bg-brand/10 rounded-lg flex items-center justify-center text-brand">
+                                            <i data-feather="cpu" class="w-4 h-4"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium">Data Center #2</p>
+                                            <p class="text-xs text-zinc-500">Node ID: lp-n212r...</p>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div>
+                                            <p class="text-sm">AMD MI300X</p>
+                                            <p class="text-xs text-zinc-500">192GB HBM, 304 CUs</p>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center">
+                                            <span class="status-indicator status-active"></span>
+                                            <span>Active</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-2">
+                                            <div class="flex-1 h-2 bg-zinc-800 rounded-full">
+                                                <div class="h-2 bg-brand rounded-full" style="width: 88%"></div>
+                                            </div>
+                                            <span class="text-xs font-medium">88%</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center">
+                                            <i data-feather="dollar-sign" class="w-4 h-4 text-brand mr-1"></i>
+                                            <span>156.32 USDC</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-2">
+                                            <button class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800">
+                                                <i data-feather="edit-2" class="w-4 h-4"></i>
+                                            </button>
+                                            <button class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800">
+                                                <i data-feather="bar-chart-2" class="w-4 h-4"></i>
+                                            </button>
+                                            <button class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800">
+                                                <i data-feather="power" class="w-4 h-4"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-zinc-900/50">
+                                    <td class="px-6 py-4 flex items-center gap-3">
+                                        <div class="w-8 h-8 bg-brand/10 rounded-lg flex items-center justify-center text-brand">
+                                            <i data-feather="cpu" class="w-4 h-4"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium">Office GPU</p>
+                                            <p class="text-xs text-zinc-500">Node ID: lp-n987a...</p>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div>
+                                            <p class="text-sm">NVIDIA RTX 3090</p>
+                                            <p class="text-xs text-zinc-500">24GB VRAM, 10,496 CUDA</p>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center">
+                                            <span class="status-indicator status-pending"></span>
+                                            <span>Maintenance</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-2">
+                                            <div class="flex-1 h-2 bg-zinc-800 rounded-full">
+                                                <div class="h-2 bg-amber-500 rounded-full" style="width: 5%"></div>
+                                            </div>
+                                            <span class="text-xs font-medium">5%</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center">
+                                            <i data-feather="dollar-sign" class="w-4 h-4 text-brand mr-1"></i>
+                                            <span>2.18 USDC</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-2">
+                                            <button class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800">
+                                                <i data-feather="edit-2" class="w-4 h-4"></i>
+                                            </button>
+                                            <button class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800">
+                                                <i data-feather="bar-chart-2" class="w-4 h-4"></i>
+                                            </button>
+                                            <button class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800">
+                                                <i data-feather="power" class="w-4 h-4"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Mobile alternative view (cards) -->
+                <div class="md:hidden space-y-4 mt-4">
+                    <!-- Hardware Card 1 -->
+                    <div class="bg-dark-lighter p-4 rounded-xl border border-zinc-800">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 bg-brand/10 rounded-lg flex items-center justify-center text-brand">
+                                    <i data-feather="cpu" class="w-4 h-4"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Home Server #1</p>
+                                    <p class="text-xs text-zinc-500">Node ID: lp-n340x...</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="status-indicator status-active"></span>
+                                <span class="text-sm">Active</span>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-zinc-400">Specifications:</span>
+                                <span>NVIDIA RTX 4090</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-zinc-400">Utilization:</span>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-16 h-2 bg-zinc-800 rounded-full">
+                                        <div class="h-2 bg-brand rounded-full" style="width: 78%"></div>
+                                    </div>
+                                    <span class="text-xs font-medium">78%</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-zinc-400">24h Earnings:</span>
+                                <span class="text-brand font-medium">35.42 USDC</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3 pt-3 border-t border-zinc-700 flex justify-end gap-2">
+                            <button class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800">
+                                <i data-feather="edit-2" class="w-4 h-4"></i>
+                            </button>
+                            <button class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800">
+                                <i data-feather="bar-chart-2" class="w-4 h-4"></i>
+                            </button>
+                            <button class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800">
+                                <i data-feather="power" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- More mobile hardware cards would be here, but omitted for brevity -->
+                </div>
+            </div>
+            
+            <!-- Onboard Hardware Section -->
+            <div id="onboard-section" class="mb-6 sm:mb-8 hidden">
+                <div class="flex justify-between items-center mb-4 sm:mb-6">
+                    <h3 class="text-lg sm:text-xl font-bold">Onboard New Hardware</h3>
+                    <button class="text-zinc-400 hover:text-white">
+                        <i data-feather="help-circle" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                
+                <div class="bg-dark-lighter p-4 sm:p-6 rounded-xl border border-zinc-800">
+                    <!-- Onboard Form - adjusted for mobile -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-zinc-300">Hardware Name</label>
+                            <input type="text" class="w-full px-4 py-2 bg-dark rounded-lg border border-zinc-700 text-white focus:border-brand focus:outline-none" placeholder="e.g., Home Server #2">
+                        </div>
+                        
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-zinc-300">Hardware Type</label>
+                            <select class="w-full px-4 py-2 bg-dark rounded-lg border border-zinc-700 text-white focus:border-brand focus:outline-none">
+                                <option value="">Select hardware type</option>
+                                <option value="gpu">GPU Server</option>
+                                <option value="cpu">CPU Compute</option>
+                                <option value="storage">Storage Node</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-zinc-300">GPU Model</label>
+                            <select class="w-full px-4 py-2 bg-dark rounded-lg border border-zinc-700 text-white focus:border-brand focus:outline-none">
+                                <option value="">Select GPU model</option>
+                                <option value="rtx4090">NVIDIA RTX 4090</option>
+                                <option value="rtxa6000">NVIDIA RTX A6000</option>
+                                <option value="a100">NVIDIA A100</option>
+                                <option value="h100">NVIDIA H100</option>
+                                <option value="mi300">AMD MI300</option>
+                                <option value="rx7900">AMD RX 7900 XTX</option>
+                                <option value="other">Other (specify)</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-zinc-300">VRAM (GB)</label>
+                            <select class="w-full px-4 py-2 bg-dark rounded-lg border border-zinc-700 text-white focus:border-brand focus:outline-none">
+                                <option value="">Select VRAM size</option>
+                                <option value="8">8 GB</option>
+                                <option value="12">12 GB</option>
+                                <option value="16">16 GB</option>
+                                <option value="24">24 GB</option>
+                                <option value="32">32 GB</option>
+                                <option value="48">48 GB</option>
+                                <option value="80">80 GB</option>
+                                <option value="custom">Custom size</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-zinc-300">Availability Schedule</label>
+                            <select class="w-full px-4 py-2 bg-dark rounded-lg border border-zinc-700 text-white focus:border-brand focus:outline-none">
+                                <option value="24-7">24/7 - Always available</option>
+                                <option value="off-peak">Off-peak hours only</option>
+                                <option value="business">Business hours only</option>
+                                <option value="custom">Custom schedule</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-zinc-300">Minimum Price (USDC per hour)</label>
+                            <input type="number" step="0.01" min="0" class="w-full px-4 py-2 bg-dark rounded-lg border border-zinc-700 text-white focus:border-brand focus:outline-none" placeholder="e.g., 1.5">
+                        </div>
+                    </div>
+                    
+                    <!-- Advanced Options (initially hidden) -->
+                    <div class="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-zinc-700">
+                        <div class="flex justify-between items-center mb-4">
+                            <h4 class="font-medium">Advanced Options</h4>
+                            <button class="text-zinc-400 hover:text-white text-sm flex items-center gap-1.5">
+                                <i data-feather="chevron-down" class="w-4 h-4"></i>
+                                <span>Show</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Form Actions - stacked on mobile -->
+                    <div class="mt-4 sm:mt-6 flex flex-col sm:flex-row gap-3 sm:justify-end">
+                        <button class="px-5 py-2 bg-dark border border-zinc-700 hover:bg-zinc-800 rounded-lg text-white w-full sm:w-auto">
+                            Save as Draft
+                        </button>
+                        <button class="px-5 py-2 bg-brand hover:bg-brand-600 rounded-lg text-black font-medium flex items-center justify-center gap-2 w-full sm:w-auto">
+                            <i data-feather="cpu" class="w-4 h-4"></i>
+                            <span>Onboard Hardware</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Model Marketplace Section -->
+            <div id="marketplace-section" class="mb-6 sm:mb-8 hidden">
+                <!-- Header: Title -->
+                <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 sm:mb-8">
+                    <div>
+                        <h2 class="text-xl sm:text-2xl font-bold">Model Marketplace</h2>
+                        <p class="text-zinc-400">Discover and integrate pre-configured AI models.</p>
+                    </div>
+                </div>
+
+                <!-- Filter Bar -->
+                <div class="mb-6 sm:mb-8 p-4 sm:p-6 bg-dark-lighter rounded-xl border border-zinc-800">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                            <label for="model-search" class="block text-xs sm:text-sm font-medium text-zinc-300 mb-1">Search Models</label>
+                            <input type="text" id="model-search" placeholder="e.g., Llama, Stable Diffusion" class="w-full px-3 py-2 bg-dark rounded-lg border border-zinc-700 text-sm focus:border-brand focus:outline-none">
+                        </div>
+                        <div>
+                            <label for="model-type-filter" class="block text-xs sm:text-sm font-medium text-zinc-300 mb-1">Model Type</label>
+                            <select id="model-type-filter" class="w-full px-3 py-2 bg-dark rounded-lg border border-zinc-700 text-sm focus:border-brand focus:outline-none">
+                                <option value="">All Types</option>
+                                <option value="llm">Language Models (LLM)</option>
+                                <option value="image">Image Generation</option>
+                                <option value="audio">Audio Processing</option>
+                                <option value="code">Code Generation</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="hardware-filter" class="block text-xs sm:text-sm font-medium text-zinc-300 mb-1">Hardware Tier</label>
+                            <select id="hardware-filter" class="w-full px-3 py-2 bg-dark rounded-lg border border-zinc-700 text-sm focus:border-brand focus:outline-none">
+                                <option value="">All Tiers</option>
+                                <option value="rtx4090">NVIDIA RTX 4090</option>
+                                <option value="a100_40gb">NVIDIA A100 (40GB)</option>
+                                <option value="a100_80gb">NVIDIA A100 (80GB)</option>
+                                <option value="h100">NVIDIA H100</option>
+                                <option value="cpu_high">High Performance CPU</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="sort-by" class="block text-xs sm:text-sm font-medium text-zinc-300 mb-1">Sort By</label>
+                            <select id="sort-by" class="w-full px-3 py-2 bg-dark rounded-lg border border-zinc-700 text-sm focus:border-brand focus:outline-none">
+                                <option value="popularity">Popularity</option>
+                                <option value="price_asc">Price: Low to High</option>
+                                <option value="price_desc">Price: High to Low</option>
+                                <option value="newest">Newest</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Model Cards Grid -->
+                <div id="model-cards-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+                    <!-- Sample Model Card 1: Llama-2 7B -->
+                    <div class="dashboard-card bg-dark-lighter p-5 sm:p-6 rounded-xl border border-zinc-800 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between mb-3">
+                                <h3 class="text-md sm:text-lg font-semibold text-white">Llama-2 7B Chat</h3>
+                                <span class="text-xs bg-indigo-500/20 text-indigo-400 px-2 py-1 rounded-full whitespace-nowrap">LLM</span>
+                            </div>
+                            <p class="text-xs sm:text-sm text-zinc-400 mb-1">Provider: <span class="text-zinc-300">Lilypad Pioneers</span></p>
+                            <p class="text-xs sm:text-sm text-zinc-400 mb-3">Hardware: <span class="text-zinc-300">NVIDIA A100 (40GB)</span></p>
+                            
+                            <div class="mb-4 space-y-2 text-xs sm:text-sm">
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="dollar-sign" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>$0.20/1M input, $0.80/1M output</span>
+                                </div>
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="zap" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>Avg. Latency: 120ms</span>
+                                </div>
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="bar-chart-2" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>99.95% Uptime</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="mt-auto w-full bg-brand hover:bg-brand-600 text-black font-medium py-2 sm:py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 text-sm open-api-modal-button"
+                                data-model-name="Llama-2 7B Chat" 
+                                data-api-key="LP-LLAMA7B-DEMOKEY-EA3B7F"
+                                data-endpoint="https://api.lilypad.tech/v1/models/llama2-7b-chat/infer">
+                            <i data-feather="key" class="w-4 h-4"></i>
+                            <span>Get API Key</span>
+                        </button>
+                    </div>
+
+                    <!-- Sample Model Card 2: Stable Diffusion XL -->
+                    <div class="dashboard-card bg-dark-lighter p-5 sm:p-6 rounded-xl border border-zinc-800 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between mb-3">
+                                <h3 class="text-md sm:text-lg font-semibold text-white">Stable Diffusion XL</h3>
+                                <span class="text-xs bg-pink-500/20 text-pink-400 px-2 py-1 rounded-full whitespace-nowrap">Image Gen</span>
+                            </div>
+                            <p class="text-xs sm:text-sm text-zinc-400 mb-1">Provider: <span class="text-zinc-300">GPU Masters Inc.</span></p>
+                            <p class="text-xs sm:text-sm text-zinc-400 mb-3">Hardware: <span class="text-zinc-300">NVIDIA RTX 4090</span></p>
+                            
+                            <div class="mb-4 space-y-2 text-xs sm:text-sm">
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="dollar-sign" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>$0.004 / image (1024x1024)</span>
+                                </div>
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="zap" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>Avg. Speed: 3.5s / image</span>
+                                </div>
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="bar-chart-2" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>99.8% Uptime</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="mt-auto w-full bg-brand hover:bg-brand-600 text-black font-medium py-2 sm:py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 text-sm open-api-modal-button"
+                                data-model-name="Stable Diffusion XL" 
+                                data-api-key="LP-SDXL-DEMOKEY-9C1D5A"
+                                data-endpoint="https://api.lilypad.tech/v1/models/stable-diffusion-xl/generate">
+                            <i data-feather="key" class="w-4 h-4"></i>
+                            <span>Get API Key</span>
+                        </button>
+                    </div>
+
+                    <!-- Sample Model Card 3: Whisper Large V3 -->
+                    <div class="dashboard-card bg-dark-lighter p-5 sm:p-6 rounded-xl border border-zinc-800 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between mb-3">
+                                <h3 class="text-md sm:text-lg font-semibold text-white">Whisper Large V3</h3>
+                                <span class="text-xs bg-teal-500/20 text-teal-400 px-2 py-1 rounded-full whitespace-nowrap">Audio</span>
+                            </div>
+                            <p class="text-xs sm:text-sm text-zinc-400 mb-1">Provider: <span class="text-zinc-300">Audio AI Solutions</span></p>
+                            <p class="text-xs sm:text-sm text-zinc-400 mb-3">Hardware: <span class="text-zinc-300">NVIDIA H100</span></p>
+                            
+                            <div class="mb-4 space-y-2 text-xs sm:text-sm">
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="dollar-sign" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>$0.006 / audio minute</span>
+                                </div>
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="zap" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>Real-time Factor: 0.1x</span>
+                                </div>
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="bar-chart-2" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>99.9% Uptime</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="mt-auto w-full bg-brand hover:bg-brand-600 text-black font-medium py-2 sm:py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 text-sm open-api-modal-button"
+                                data-model-name="Whisper Large V3" 
+                                data-api-key="LP-WHISPER-DEMOKEY-F8B2E1"
+                                data-endpoint="https://api.lilypad.tech/v1/models/whisper-v3/transcribe">
+                            <i data-feather="key" class="w-4 h-4"></i>
+                            <span>Get API Key</span>
+                        </button>
+                    </div>
+
+                    <!-- New Model Card: Qwen3-32B -->
+                    <div class="dashboard-card bg-dark-lighter p-5 sm:p-6 rounded-xl border border-zinc-800 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between mb-3">
+                                <h3 class="text-md sm:text-lg font-semibold text-white">Qwen3-32B</h3>
+                                <span class="text-xs bg-indigo-500/20 text-indigo-400 px-2 py-1 rounded-full whitespace-nowrap">LLM</span>
+                            </div>
+                            <p class="text-xs sm:text-sm text-zinc-400 mb-1">Provider: <span class="text-zinc-300">Qwen (Alibaba)</span></p>
+                            <p class="text-xs sm:text-sm text-zinc-400 mb-3">Hardware: <span class="text-zinc-300">NVIDIA H100</span></p>
+                            <div class="mb-4 space-y-2 text-xs sm:text-sm">
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="dollar-sign" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>$0.60/1M input, $1.80/1M output</span>
+                                </div>
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="zap" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>Avg. Latency: 90ms</span>
+                                </div>
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="bar-chart-2" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>99.9% Uptime</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="mt-auto w-full bg-brand hover:bg-brand-600 text-black font-medium py-2 sm:py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 text-sm open-api-modal-button"
+                                data-model-name="Qwen3-32B" 
+                                data-api-key="LP-QWEN332B-DEMOKEY-A1B2C3"
+                                data-endpoint="https://api.lilypad.tech/v1/models/qwen3-32b/infer">
+                            <i data-feather="key" class="w-4 h-4"></i>
+                            <span>Get API Key</span>
+                        </button>
+                    </div>
+
+                    <!-- New Model Card: Phi-4 Reasoning Plus -->
+                    <div class="dashboard-card bg-dark-lighter p-5 sm:p-6 rounded-xl border border-zinc-800 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between mb-3">
+                                <h3 class="text-md sm:text-lg font-semibold text-white">Phi-4 Reasoning Plus</h3>
+                                <span class="text-xs bg-indigo-500/20 text-indigo-400 px-2 py-1 rounded-full whitespace-nowrap">LLM</span>
+                            </div>
+                            <p class="text-xs sm:text-sm text-zinc-400 mb-1">Provider: <span class="text-zinc-300">Microsoft</span></p>
+                            <p class="text-xs sm:text-sm text-zinc-400 mb-3">Hardware: <span class="text-zinc-300">NVIDIA A100 (80GB)</span></p>
+                            <div class="mb-4 space-y-2 text-xs sm:text-sm">
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="dollar-sign" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>$0.30/1M input, $1.00/1M output</span>
+                                </div>
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="zap" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>High Reasoning Score</span>
+                                </div>
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="bar-chart-2" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>99.85% Uptime</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="mt-auto w-full bg-brand hover:bg-brand-600 text-black font-medium py-2 sm:py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 text-sm open-api-modal-button"
+                                data-model-name="Phi-4 Reasoning Plus" 
+                                data-api-key="LP-PHI4RPLUS-DEMOKEY-D4E5F6"
+                                data-endpoint="https://api.lilypad.tech/v1/models/phi-4-reasoning-plus/infer">
+                            <i data-feather="key" class="w-4 h-4"></i>
+                            <span>Get API Key</span>
+                        </button>
+                    </div>
+
+                    <!-- New Model Card: FLUX.1 Dev -->
+                    <div class="dashboard-card bg-dark-lighter p-5 sm:p-6 rounded-xl border border-zinc-800 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between mb-3">
+                                <h3 class="text-md sm:text-lg font-semibold text-white">FLUX.1 Dev</h3>
+                                <span class="text-xs bg-pink-500/20 text-pink-400 px-2 py-1 rounded-full whitespace-nowrap">Image Gen</span>
+                            </div>
+                            <p class="text-xs sm:text-sm text-zinc-400 mb-1">Provider: <span class="text-zinc-300">Black Forest Labs</span></p>
+                            <p class="text-xs sm:text-sm text-zinc-400 mb-3">Hardware: <span class="text-zinc-300">NVIDIA H100 (Multi-GPU)</span></p>
+                            <div class="mb-4 space-y-2 text-xs sm:text-sm">
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="dollar-sign" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>$0.008 / image (2048x2048)</span>
+                                </div>
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="zap" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>Avg. Speed: 5s / image</span>
+                                </div>
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="bar-chart-2" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>High Quality Output</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="mt-auto w-full bg-brand hover:bg-brand-600 text-black font-medium py-2 sm:py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 text-sm open-api-modal-button"
+                                data-model-name="FLUX.1 Dev" 
+                                data-api-key="LP-FLUX1DEV-DEMOKEY-G7H8I9"
+                                data-endpoint="https://api.lilypad.tech/v1/models/flux1-dev/generate">
+                            <i data-feather="key" class="w-4 h-4"></i>
+                            <span>Get API Key</span>
+                        </button>
+                    </div>
+
+                    <!-- New Model Card: Parakeet TDT 0.6B -->
+                    <div class="dashboard-card bg-dark-lighter p-5 sm:p-6 rounded-xl border border-zinc-800 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between mb-3">
+                                <h3 class="text-md sm:text-lg font-semibold text-white">Parakeet TDT 0.6B</h3>
+                                <span class="text-xs bg-sky-500/20 text-sky-400 px-2 py-1 rounded-full whitespace-nowrap">Speech Rec</span>
+                            </div>
+                            <p class="text-xs sm:text-sm text-zinc-400 mb-1">Provider: <span class="text-zinc-300">NVIDIA</span></p>
+                            <p class="text-xs sm:text-sm text-zinc-400 mb-3">Hardware: <span class="text-zinc-300">NVIDIA RTX 4090</span></p>
+                            <div class="mb-4 space-y-2 text-xs sm:text-sm">
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="dollar-sign" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>$0.003 / audio minute</span>
+                                </div>
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="zap" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>Word Error Rate: 5%</span>
+                                </div>
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="bar-chart-2" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>99.9% Uptime</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="mt-auto w-full bg-brand hover:bg-brand-600 text-black font-medium py-2 sm:py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 text-sm open-api-modal-button"
+                                data-model-name="Parakeet TDT 0.6B" 
+                                data-api-key="LP-PARAKEET-DEMOKEY-J0K1L2"
+                                data-endpoint="https://api.lilypad.tech/v1/models/parakeet-tdt/transcribe">
+                            <i data-feather="key" class="w-4 h-4"></i>
+                            <span>Get API Key</span>
+                        </button>
+                    </div>
+
+                    <!-- New Model Card: Dia 1.6B TTS -->
+                    <div class="dashboard-card bg-dark-lighter p-5 sm:p-6 rounded-xl border border-zinc-800 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between mb-3">
+                                <h3 class="text-md sm:text-lg font-semibold text-white">Dia 1.6B TTS</h3>
+                                <span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full whitespace-nowrap">Text-to-Speech</span>
+                            </div>
+                            <p class="text-xs sm:text-sm text-zinc-400 mb-1">Provider: <span class="text-zinc-300">Nari Labs</span></p>
+                            <p class="text-xs sm:text-sm text-zinc-400 mb-3">Hardware: <span class="text-zinc-300">NVIDIA A100 (40GB)</span></p>
+                            <div class="mb-4 space-y-2 text-xs sm:text-sm">
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="dollar-sign" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>$0.005 / 1k characters</span>
+                                </div>
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="zap" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>Natural Sounding Voice</span>
+                                </div>
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="bar-chart-2" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>Low Latency Synthesis</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="mt-auto w-full bg-brand hover:bg-brand-600 text-black font-medium py-2 sm:py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 text-sm open-api-modal-button"
+                                data-model-name="Dia 1.6B TTS" 
+                                data-api-key="LP-DIA16TTS-DEMOKEY-M3N4O5"
+                                data-endpoint="https://api.lilypad.tech/v1/models/dia-1.6b-tts/synthesize">
+                            <i data-feather="key" class="w-4 h-4"></i>
+                            <span>Get API Key</span>
+                        </button>
+                    </div>
+
+                    <!-- New Model Card: LTX Video -->
+                    <div class="dashboard-card bg-dark-lighter p-5 sm:p-6 rounded-xl border border-zinc-800 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between mb-3">
+                                <h3 class="text-md sm:text-lg font-semibold text-white">LTX Video</h3>
+                                <span class="text-xs bg-orange-500/20 text-orange-400 px-2 py-1 rounded-full whitespace-nowrap">Text-to-Video</span>
+                            </div>
+                            <p class="text-xs sm:text-sm text-zinc-400 mb-1">Provider: <span class="text-zinc-300">Lightricks</span></p>
+                            <p class="text-xs sm:text-sm text-zinc-400 mb-3">Hardware: <span class="text-zinc-300">NVIDIA H100 (Cluster)</span></p>
+                            <div class="mb-4 space-y-2 text-xs sm:text-sm">
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="dollar-sign" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>$0.10 / second of video (HD)</span>
+                                </div>
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="zap" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>Up to 10s clips</span>
+                                </div>
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="bar-chart-2" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>Cinematic Quality</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="mt-auto w-full bg-brand hover:bg-brand-600 text-black font-medium py-2 sm:py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 text-sm open-api-modal-button"
+                                data-model-name="LTX Video" 
+                                data-api-key="LP-LTXVIDEO-DEMOKEY-P6Q7R8"
+                                data-endpoint="https://api.lilypad.tech/v1/models/ltx-video/generate">
+                            <i data-feather="key" class="w-4 h-4"></i>
+                            <span>Get API Key</span>
+                        </button>
+                    </div>
+
+                    <!-- New Model Card: Hunyuan3D v2 -->
+                    <div class="dashboard-card bg-dark-lighter p-5 sm:p-6 rounded-xl border border-zinc-800 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between mb-3">
+                                <h3 class="text-md sm:text-lg font-semibold text-white">Hunyuan3D v2</h3>
+                                <span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-full whitespace-nowrap">Image-to-3D</span>
+                            </div>
+                            <p class="text-xs sm:text-sm text-zinc-400 mb-1">Provider: <span class="text-zinc-300">Tencent</span></p>
+                            <p class="text-xs sm:text-sm text-zinc-400 mb-3">Hardware: <span class="text-zinc-300">NVIDIA A100 (80GB)</span></p>
+                            <div class="mb-4 space-y-2 text-xs sm:text-sm">
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="dollar-sign" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>$0.05 / 3D model generated</span>
+                                </div>
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="zap" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>Fast 3D Reconstruction</span>
+                                </div>
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="bar-chart-2" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>Textured Mesh Output</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="mt-auto w-full bg-brand hover:bg-brand-600 text-black font-medium py-2 sm:py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 text-sm open-api-modal-button"
+                                data-model-name="Hunyuan3D v2" 
+                                data-api-key="LP-HUNYUAN3D-DEMOKEY-S9T0U1"
+                                data-endpoint="https://api.lilypad.tech/v1/models/hunyuan3d-v2/convert">
+                            <i data-feather="key" class="w-4 h-4"></i>
+                            <span>Get API Key</span>
+                        </button>
+                    </div>
+                    
+                    <!-- New Model Card: Code Llama 70B -->
+                    <div class="dashboard-card bg-dark-lighter p-5 sm:p-6 rounded-xl border border-zinc-800 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between mb-3">
+                                <h3 class="text-md sm:text-lg font-semibold text-white">Code Llama 70B</h3>
+                                <span class="text-xs bg-cyan-500/20 text-cyan-400 px-2 py-1 rounded-full whitespace-nowrap">Code Gen</span>
+                            </div>
+                            <p class="text-xs sm:text-sm text-zinc-400 mb-1">Provider: <span class="text-zinc-300">Meta</span></p>
+                            <p class="text-xs sm:text-sm text-zinc-400 mb-3">Hardware: <span class="text-zinc-300">NVIDIA H100 (Multi-GPU)</span></p>
+                            <div class="mb-4 space-y-2 text-xs sm:text-sm">
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="dollar-sign" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>$1.00/1M input, $3.00/1M output</span>
+                                </div>
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="zap" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>Supports Python, Java, C++</span>
+                                </div>
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="bar-chart-2" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>High Accuracy Code</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="mt-auto w-full bg-brand hover:bg-brand-600 text-black font-medium py-2 sm:py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 text-sm open-api-modal-button"
+                                data-model-name="Code Llama 70B" 
+                                data-api-key="LP-CODELLAMA70B-DEMOKEY-V2W3X4"
+                                data-endpoint="https://api.lilypad.tech/v1/models/codellama-70b/generate">
+                            <i data-feather="key" class="w-4 h-4"></i>
+                            <span>Get API Key</span>
+                        </button>
+                    </div>
+
+                    <!-- New Model Card: MiMo-7B RL -->
+                    <div class="dashboard-card bg-dark-lighter p-5 sm:p-6 rounded-xl border border-zinc-800 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between mb-3">
+                                <h3 class="text-md sm:text-lg font-semibold text-white">MiMo-7B RL</h3>
+                                <span class="text-xs bg-indigo-500/20 text-indigo-400 px-2 py-1 rounded-full whitespace-nowrap">LLM</span>
+                            </div>
+                            <p class="text-xs sm:text-sm text-zinc-400 mb-1">Provider: <span class="text-zinc-300">XiaomiMiMo</span></p>
+                            <p class="text-xs sm:text-sm text-zinc-400 mb-3">Hardware: <span class="text-zinc-300">NVIDIA A100 (40GB)</span></p>
+                            <div class="mb-4 space-y-2 text-xs sm:text-sm">
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="dollar-sign" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>$0.15/1M input, $0.60/1M output</span>
+                                </div>
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="zap" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>Optimized for Mobile Use Cases</span>
+                                </div>
+                                <div class="flex items-center text-zinc-300">
+                                    <i data-feather="bar-chart-2" class="w-3.5 h-3.5 mr-2 text-brand"></i>
+                                    <span>99.7% Uptime</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="mt-auto w-full bg-brand hover:bg-brand-600 text-black font-medium py-2 sm:py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 text-sm open-api-modal-button"
+                                data-model-name="MiMo-7B RL" 
+                                data-api-key="LP-MIMO7BRL-DEMOKEY-Y5Z6A7"
+                                data-endpoint="https://api.lilypad.tech/v1/models/mimo-7b-rl/infer">
+                            <i data-feather="key" class="w-4 h-4"></i>
+                            <span>Get API Key</span>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+            
+            <!-- My Deployments Section -->
+            <div id="deployments-section" class="mb-6 sm:mb-8 hidden">
+                <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 sm:mb-8">
+                    <div>
+                        <h2 class="text-xl sm:text-2xl font-bold">My Deployments</h2>
+                        <p class="text-zinc-400">Manage your active model deployments and endpoints.</p>
+                    </div>
+                    <button class="px-3 sm:px-4 py-2 bg-brand hover:bg-brand-600 text-black rounded-lg flex items-center gap-2 mt-4 md:mt-0">
+                        <i data-feather="plus-circle" class="w-4 h-4"></i>
+                        <span>New Deployment</span>
+                    </button>
+                </div>
+                <!-- Placeholder content for My Deployments -->
+                <div class="bg-dark-lighter p-6 rounded-xl border border-zinc-800 text-center">
+                    <i data-feather="server" class="w-12 h-12 text-zinc-500 mx-auto mb-4"></i>
+                    <h3 class="text-lg font-semibold mb-2">No Active Deployments Yet</h3>
+                    <p class="text-zinc-400 mb-4">Deploy models from the marketplace or create custom deployments.</p>
+                    <button class="text-brand hover:underline" onclick="document.querySelector('a[href=\'#marketplace\']').click()">Browse Model Marketplace</button>
+                </div>
+            </div>
+
+            <!-- Analytics Section -->
+            <div id="analytics-section" class="mb-6 sm:mb-8 hidden">
+                <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 sm:mb-8">
+                    <div>
+                        <h2 class="text-xl sm:text-2xl font-bold">Analytics</h2>
+                        <p class="text-zinc-400">Detailed insights into your usage, earnings, and performance.</p>
+                    </div>
+                    <!-- Add date range picker or other controls here -->
+                </div>
+                <!-- Placeholder content for Analytics -->
+                <div class="bg-dark-lighter p-6 rounded-xl border border-zinc-800 text-center">
+                    <i data-feather="bar-chart-2" class="w-12 h-12 text-zinc-500 mx-auto mb-4"></i>
+                    <h3 class="text-lg font-semibold mb-2">Analytics Data Coming Soon</h3>
+                    <p class="text-zinc-400">Detailed charts and reports will be available here.</p>
+                </div>
+            </div>
+            
+            <!-- Compute Usage Section (Placeholder) -->
+            <div id="compute-section" class="mb-6 sm:mb-8 hidden">
+                <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 sm:mb-8">
+                    <h2 class="text-xl sm:text-2xl font-bold">Compute Usage</h2>
+                </div>
+                <div class="bg-dark-lighter p-6 rounded-xl border border-zinc-800 text-center">
+                    <i data-feather="zap" class="w-12 h-12 text-zinc-500 mx-auto mb-4"></i>
+                    <h3 class="text-lg font-semibold mb-2">Compute Usage Details Coming Soon</h3>
+                </div>
+            </div>
+
+            <!-- Earnings & Payouts Section (Placeholder) -->
+            <div id="payouts-section" class="mb-6 sm:mb-8 hidden">
+                <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 sm:mb-8">
+                    <h2 class="text-xl sm:text-2xl font-bold">Earnings & Payouts</h2>
+                </div>
+                <div class="bg-dark-lighter p-6 rounded-xl border border-zinc-800 text-center">
+                    <i data-feather="dollar-sign" class="w-12 h-12 text-zinc-500 mx-auto mb-4"></i>
+                    <h3 class="text-lg font-semibold mb-2">Earnings and Payouts Information Coming Soon</h3>
+                </div>
+            </div>
+
+            <!-- Settings Section (Placeholder) -->
+            <div id="settings-section" class="mb-6 sm:mb-8 hidden">
+                <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 sm:mb-8">
+                    <h2 class="text-xl sm:text-2xl font-bold">Settings</h2>
+                </div>
+                <div class="bg-dark-lighter p-6 rounded-xl border border-zinc-800 text-center">
+                    <i data-feather="settings" class="w-12 h-12 text-zinc-500 mx-auto mb-4"></i>
+                    <h3 class="text-lg font-semibold mb-2">Account Settings Coming Soon</h3>
+                </div>
+            </div>
+
+            <!-- Help & Support Section (Placeholder) -->
+            <div id="help-section" class="mb-6 sm:mb-8 hidden">
+                <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 sm:mb-8">
+                    <h2 class="text-xl sm:text-2xl font-bold">Help & Support</h2>
+                </div>
+                <div class="bg-dark-lighter p-6 rounded-xl border border-zinc-800 text-center">
+                    <i data-feather="help-circle" class="w-12 h-12 text-zinc-500 mx-auto mb-4"></i>
+                    <h3 class="text-lg font-semibold mb-2">Help and Support Resources Coming Soon</h3>
+                </div>
+            </div>
+            
+            <!-- Mobile navigation at bottom -->
+            <div class="fixed bottom-0 left-0 right-0 bg-dark border-t border-zinc-800 flex justify-around py-2 md:hidden z-30">
+                <button class="flex flex-col items-center p-2 text-brand">
+                    <i data-feather="grid" class="w-5 h-5"></i>
+                    <span class="text-xs mt-1">Overview</span>
+                </button>
+                <button class="flex flex-col items-center p-2 text-zinc-400">
+                    <i data-feather="cpu" class="w-5 h-5"></i>
+                    <span class="text-xs mt-1">Hardware</span>
+                </button>
+                <button class="flex flex-col items-center p-2 text-zinc-400">
+                    <i data-feather="dollar-sign" class="w-5 h-5"></i>
+                    <span class="text-xs mt-1">Earnings</span>
+                </button>
+                <button class="flex flex-col items-center p-2 text-zinc-400">
+                    <i data-feather="user" class="w-5 h-5"></i>
+                    <span class="text-xs mt-1">Account</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Key Modal -->
+    <div id="api-key-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center hidden p-4">
+        <div class="bg-dark-lighter p-6 sm:p-8 rounded-xl border border-zinc-700 shadow-2xl w-full max-w-md sm:max-w-lg transform transition-all">
+            <div class="flex items-center justify-between mb-4 sm:mb-6">
+                <h3 class="text-lg sm:text-xl font-semibold text-white" id="modal-model-name">API Key for [Model Name]</h3>
+                <button id="close-api-modal-button" class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800">
+                    <i data-feather="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="mb-4 sm:mb-6">
+                <label class="block text-xs sm:text-sm font-medium text-zinc-300 mb-1">Your API Key:</label>
+                <div class="flex items-center bg-dark p-3 rounded-lg border border-zinc-700">
+                    <input id="modal-api-key-input" type="text" readonly class="flex-grow bg-transparent text-zinc-300 focus:outline-none text-xs sm:text-sm">
+                    <button id="copy-api-key-button" class="ml-3 px-3 py-1.5 bg-brand/20 text-brand text-xs font-medium rounded-md hover:bg-brand/30 flex items-center gap-1.5">
+                        <i data-feather="copy" class="w-3 h-3"></i>
+                        <span id="copy-button-text">Copy</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="mb-4 sm:mb-6">
+                <label class="block text-xs sm:text-sm font-medium text-zinc-300 mb-1">API Endpoint:</label>
+                <div class="bg-dark p-3 rounded-lg border border-zinc-700">
+                    <code id="modal-api-endpoint" class="text-xs sm:text-sm text-zinc-300 break-all"></code>
+                </div>
+            </div>
+            
+            <div class="mb-4 sm:mb-6">
+                <h4 class="text-sm sm:text-md font-medium text-zinc-200 mb-2">Example Usage (cURL):</h4>
+                <pre class="bg-dark p-3 rounded-lg border border-zinc-700 text-xs text-zinc-400 overflow-x-auto"><code id="modal-curl-example"></code></pre>
+            </div>
+            
+            <div class="text-xs text-zinc-500">
+                <p>Note: Keep your API key secure. Usage may be subject to billing based on the model's pricing.</p>
+                <a href="https://docs.lilypad.tech/api-usage" target="_blank" class="text-brand hover:underline mt-1 inline-block">View API Documentation <i data-feather="external-link" class="w-3 h-3 inline-block ml-0.5"></i></a>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // Initialize Feather Icons
+        document.addEventListener('DOMContentLoaded', () => {
+            feather.replace();
+            
+            // Mobile sidebar toggle functionality
+            const sidebarElement = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            
+            function toggleSidebar() {
+                sidebarElement.classList.toggle('-translate-x-full');
+                sidebarOverlay.classList.toggle('hidden');
+                document.body.classList.toggle('overflow-hidden');
+            }
+            
+            mobileMenuButton.addEventListener('click', toggleSidebar);
+            sidebarOverlay.addEventListener('click', toggleSidebar);
+            
+            // Handle window resize to reset sidebar state
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 768) { // md breakpoint
+                    sidebarElement.classList.remove('-translate-x-full');
+                    sidebarOverlay.classList.add('hidden');
+                    document.body.classList.remove('overflow-hidden');
+                }
+            });
+            
+            // Initialize Performance Chart
+            const performanceCtx = document.getElementById('performanceChart')?.getContext('2d');
+            if (performanceCtx) {
+                const performanceChart = new Chart(performanceCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        datasets: [{
+                            label: 'Utilization %',
+                            data: [65, 78, 82, 75, 92, 84, 87],
+                            borderColor: '#08D4CB',
+                            backgroundColor: 'rgba(8, 212, 203, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: '#16191F',
+                                titleColor: '#ffffff',
+                                bodyColor: '#cbd5e1',
+                                borderColor: '#334155',
+                                borderWidth: 1,
+                                padding: 12
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    color: '#64748b',
+
+                                    display: function(context) {
+                                        // Display fewer labels on small screens
+                                        return window.innerWidth > 640 || context.index % 2 === 0;
+                                    }
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                grid: {
+                                    color: 'rgba(100, 116, 139, 0.1)'
+                                },
+                                ticks: {
+                                    color: '#64748b',
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Initialize Earnings Chart with responsive options
+            const earningsCtx = document.getElementById('earningsChart')?.getContext('2d');
+            if (earningsCtx) {
+                const earningsChart = new Chart(earningsCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Compute', 'Models', 'Data'],
+                        datasets: [{
+                            data: [65, 25, 10],
+                            backgroundColor: [
+                                '#08D4CB',
+                                '#a855f7',
+                                '#f59e0b'
+                            ],
+                            borderWidth: 0,
+                            borderRadius: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: '#16191F',
+                                titleColor: '#ffffff',
+                                bodyColor: '#cbd5e1',
+                                borderColor: '#334155',
+                                borderWidth: 1,
+                                padding: 12,
+                                callbacks: {
+                                    label: function(context) {
+                                        const value = context.raw;
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = ((value / total) * 100).toFixed(1);
+                                        return `${context.label}: ${percentage}%`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Sidebar Links Active State Manager
+            const sidebarLinks = document.querySelectorAll('.sidebar-link');
+            // Select all direct children divs of dashboard-content that end with -section
+            const mainContentDivs = document.querySelectorAll('.dashboard-content > div[id$="-section"], .dashboard-content > div[id$="-block"]');
+
+
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    const currentActiveLink = document.querySelector('.sidebar-link.active');
+                    if (currentActiveLink) {
+                        currentActiveLink.classList.remove('active');
+                        const currentActiveIcon = currentActiveLink.querySelector('i[data-feather]');
+                        if (currentActiveIcon) {
+                            currentActiveIcon.classList.remove('text-brand');
+                            currentActiveIcon.classList.add('text-zinc-400');
+                        }
+                    }
+                    
+                    link.classList.add('active');
+                    const newActiveIcon = link.querySelector('i[data-feather]');
+                    if (newActiveIcon) {
+                        newActiveIcon.classList.remove('text-zinc-400');
+                        newActiveIcon.classList.add('text-brand');
+                    }
+                    
+                    const targetId = link.getAttribute('href').substring(1);
+                    
+                    mainContentDivs.forEach(div => {
+                        // Ensure we don't hide the network-activity-block if it's part of the overview
+                        if (div.id !== 'network-activity-block' || targetId !== 'overview') { // Keep network-activity-block if overview is active
+                             div.classList.add('hidden');
+                        } else if (div.id === 'network-activity-block' && targetId === 'overview') {
+                            div.classList.remove('hidden'); // Explicitly show if it's overview
+                        }
+                    });
+                    
+                    const targetSectionElement = document.getElementById(targetId + '-section');
+                    if (targetSectionElement) {
+                        targetSectionElement.classList.remove('hidden');
+                        // If overview is shown, ensure its network activity block is also visible
+                        if (targetId === 'overview') {
+                            const networkActivityBlock = document.getElementById('network-activity-block');
+                            if (networkActivityBlock) networkActivityBlock.classList.remove('hidden');
+                        }
+                        feather.replace(); // Refresh icons in the newly shown section
+                    } else {
+                        console.warn(`Section with ID "${targetId}-section" not found.`);
+                        const overviewSection = document.getElementById('overview-section');
+                        if (overviewSection) {
+                            overviewSection.classList.remove('hidden');
+                            const networkActivityBlock = document.getElementById('network-activity-block');
+                            if (networkActivityBlock) networkActivityBlock.classList.remove('hidden');
+                        }
+                    }
+                    
+                    if (window.innerWidth < 768 && !sidebarElement.classList.contains('-translate-x-full')) {
+                        toggleSidebar();
+                    }
+                    console.log(`Navigate to ${targetId}`);
+                });
+            });
+
+            // Initialize default view (Overview)
+            const overviewLink = document.querySelector('.sidebar-link[href="#overview"]');
+            if (overviewLink) {
+                overviewLink.click(); // Simulate a click to set the initial state
+            } else { // Fallback if overview link isn't found
+                 mainContentDivs.forEach(div => {
+                    if (div.id !== 'overview-section' && div.id !== 'network-activity-block') {
+                        div.classList.add('hidden');
+                    } else {
+                        div.classList.remove('hidden');
+                    }
+                 });
+                 const overviewSection = document.getElementById('overview-section');
+                 if (overviewSection) overviewSection.classList.remove('hidden');
+                 const networkActivityBlock = document.getElementById('network-activity-block');
+                 if (networkActivityBlock) networkActivityBlock.classList.remove('hidden');
+            }
+
+
+            // API Key Modal Functionality
+            const apiKeyModal = document.getElementById('api-key-modal');
+            const closeApiModalButton = document.getElementById('close-api-modal-button');
+            const openApiModalButtons = document.querySelectorAll('.open-api-modal-button'); // Query all buttons
+            const modalModelName = document.getElementById('modal-model-name');
+            const modalApiKeyInput = document.getElementById('modal-api-key-input');
+            const modalApiEndpoint = document.getElementById('modal-api-endpoint');
+            const modalCurlExample = document.getElementById('modal-curl-example');
+            const copyApiKeyButton = document.getElementById('copy-api-key-button');
+            const copyButtonText = document.getElementById('copy-button-text');
+
+            function openModal(modelName, apiKey, apiEndpoint) {
+                if (!apiKeyModal || !modalModelName || !modalApiKeyInput || !modalApiEndpoint || !modalCurlExample) {
+                    console.error('Modal elements not found');
+                    return;
+                }
+                modalModelName.textContent = `API Key for ${modelName}`;
+                modalApiKeyInput.value = apiKey;
+                modalApiEndpoint.textContent = apiEndpoint;
+                // Example cURL, adjust payload as needed for different models
+                let payloadExample = '{"prompt": "Hello, world!"}';
+                if (modelName.toLowerCase().includes("stable diffusion")) {
+                    payloadExample = '{"prompt": "A futuristic city skyline", "steps": 25}';
+                } else if (modelName.toLowerCase().includes("whisper")) {
+                    payloadExample = '{"audio_url": "https://example.com/audio.mp3"}';
+                }
+
+                modalCurlExample.textContent = `curl -X POST ${apiEndpoint} \\
+  -H "Authorization: Bearer ${apiKey}" \\
+  -H "Content-Type: application/json" \\
+  -d '${payloadExample}'`;
+                
+                apiKeyModal.classList.remove('hidden');
+                feather.replace(); // Re-initialize icons
+                document.body.classList.add('overflow-hidden'); 
+            }
+
+            function closeModal() {
+                if (!apiKeyModal) return;
+                apiKeyModal.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+                if(copyButtonText) copyButtonText.textContent = 'Copy';
+            }
+
+            openApiModalButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const modelName = button.dataset.modelName;
+                    const apiKey = button.dataset.apiKey;
+                    const apiEndpoint = button.dataset.endpoint;
+                    openModal(modelName, apiKey, apiEndpoint);
+                });
+            });
+
+            if (closeApiModalButton) {
+                closeApiModalButton.addEventListener('click', closeModal);
+            }
+            
+            if (apiKeyModal) {
+                apiKeyModal.addEventListener('click', (event) => {
+                    if (event.target === apiKeyModal) {
+                        closeModal();
+                    }
+                });
+            }
+
+            window.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && apiKeyModal && !apiKeyModal.classList.contains('hidden')) {
+                    closeModal();
+                }
+            });
+
+            if (copyApiKeyButton && modalApiKeyInput) {
+                copyApiKeyButton.addEventListener('click', () => {
+                    modalApiKeyInput.select();
+                    modalApiKeyInput.setSelectionRange(0, 99999); 
+                    
+                    try {
+                        navigator.clipboard.writeText(modalApiKeyInput.value).then(() => {
+                            copyButtonText.textContent = 'Copied!';
+                            setTimeout(() => {
+                                copyButtonText.textContent = 'Copy';
+                            }, 2000);
+                        }).catch(err => {
+                            console.error('Failed to copy using navigator.clipboard: ', err);
+                            // Fallback for older browsers
+                            document.execCommand('copy');
+                            copyButtonText.textContent = 'Copied! (fallback)';
+                             setTimeout(() => {
+                                copyButtonText.textContent = 'Copy';
+                            }, 2000);
+                        });
+                    } catch (err) {
+                        console.error('Failed to copy API key: ', err);
+                        copyButtonText.textContent = 'Error';
+                         setTimeout(() => {
+                            copyButtonText.textContent = 'Copy';
+                        }, 2000);
+                    }
+                });
+            }
+            
+        });
+    </script>
+</body>
+</html>
